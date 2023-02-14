@@ -55,6 +55,7 @@ PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
 把KEY换成自己的，ETHERSCAN_API_KEY可以不设置（如果不需要再polygonscan能看到合约代码的话）
 
 ### 运行部署脚本
+
 1. 在BSC测试网部署
 
 ```shell

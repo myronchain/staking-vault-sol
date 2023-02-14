@@ -46,6 +46,7 @@ module.exports = {
     hardhat: {
       blockGasLimit: 10000000,
       allowUnlimitedContractSize: !withOptimizations,
+      timeout: 100000000,
     },
     mumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/PZd297vs-VHFPPcF4mRaayWFRgdHKn6I`,
