@@ -18,7 +18,7 @@ describe("StakingVault Main Token Test", function () {
   let nftV2;
 
   // constants
-  const DEPLOYED_ADDRESS = "0xfF171DDfB3236940297808345f7e32C4b5BF097f";
+  let DEPLOYED_ADDRESS = "0x?";
   const STAKING_TOKEN_BUSD_TEST = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
   const STAKING_BANK = "0xfF171DDfB3236940297808345f7e32C4b5BF097f";
   const REWARD_RATE = 1000;
@@ -33,9 +33,10 @@ describe("StakingVault Main Token Test", function () {
 
     // Get the ContractFactory
     StakingVaultFactory = await ethers.getContractFactory("StakingVault");
+    DEPLOYED_ADDRESS = (await StakingVaultFactory.signer.getAddress()).toLowerCase();
     svMainToken = await StakingVaultFactory.deploy(true, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARD_RATE);
     await svMainToken.deployed();
-    console.log("Deployed success. Contract address:" + svMainToken.address)
+    console.log("Deployed success. Contract address: " + svMainToken.address + ", Deploy Address: "+ DEPLOYED_ADDRESS)
     // upgrades contract
     // StakingVaultV2Factory = await ethers.getContractFactory("StakingVaultV2");
     // svMainToken = await upgrades.deployProxy(StakingVaultFactory,
@@ -47,7 +48,7 @@ describe("StakingVault Main Token Test", function () {
   describe("Deployment", async function () {
     it("Should set the right owner", async function () {
       const svOwner = await svMainToken.owner();
-      expect(svOwner).to.equal(DEPLOYED_ADDRESS);
+      expect(svOwner.toLowerCase()).to.equal(DEPLOYED_ADDRESS);
     });
   });
 

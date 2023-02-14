@@ -7,17 +7,54 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/**
+1. 质押
+2. 提取本金
+3. 提取收益
+4. 提取给Owner
+5. 获取指定人的收益总额
+6. 获取合约的质押总额
+7. 获取指定人的质押总额
+8. TODO 更新收益数值
+*/
 contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     event Staked(address _from, uint256 _amount);
     event Withdraw(address _from, uint256 _amount);
+    event WithdrawOwner(address _from, uint256 _amount);
     event RewardClaimed(address _from, uint256 _amount);
 
-    struct StakeState {
-        uint256 amount;
-        uint256 lastUpdated;
-        uint256 previousReward;
+    // 一次质押的信息
+    struct StakeRecord {
+        // 质押数量
+        uint256 stakeAmount;
+        // 上次更新奖励的时间
+        uint256 rewardsLastUpdatedTime;
+        // 此质押奖励历史记录
+        RewardsRecord[] rewardsRecords;
+    }
+
+    // 奖励记录，每达到一个周期新增一条记录
+    struct RewardsRecord {
+        // 质押数量
+        uint256 stakeAmount;
+        // 奖励数量
+        uint256 rewardsAmount;
+        // 计算时间
+        uint256 lastCalcTime;
+    }
+
+    // 存放一个用户质押详情
+    struct UserInfo {
+        // 质押总额
+        uint256 stakedAmount;
+        // 用户奖励总额
+        uint256 rewardsAmount;
+        // 用户奖励提取总额
+        uint256 rewardsWithdrawAmount;
+        // 用户所有质押记录
+        StakeRecord[] stakeRecords;
     }
 
     // Whether it is a main token staking(e.g. BNB)
@@ -33,20 +70,19 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     // Total amount of tokens staked
     uint256 private totalSupply;
 
-    // TODO Staking time 未知用途
+    // The minimum staking period to start calculating the earnings
     uint256 private stakingTime;
 
     // Mapping of staked record
-    mapping(address => mapping(uint256 => StakeState)) private stakeRecordNew;
-    mapping(address => StakeState) private stakeRecord;
-    // Start index of staked record
-    mapping(address => uint256) private stakeRecordStartIndex;
+    mapping(address => UserInfo) private userStateRecord;
 
     // Mapping of the referrer(value) of user(key)
     mapping(address => address) private userReferrer;
     // Mapping of the user(value) of referrer(key)
     mapping(address => address) private referrerUser;
 
+
+    /** 构造函数 */
     constructor(
         bool _isMainToken,
         address _stakingToken,
@@ -75,34 +111,8 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         rewardRate = _rewardRate;
     }
 
-    function owner() public view override returns (address) {
-        return super.owner();
-    }
 
-    function calculateReward(
-        uint256 _amount,
-        uint256 _from
-    ) public view returns (uint256) {
-        return ((_amount * (block.timestamp - _from)) * rewardRate) / 1e18;
-    }
-
-    function stakedOf(address _account) public view returns (uint256) {
-        return stakeRecord[_account].amount;
-    }
-
-    function rewardOf(address _account) public view returns (uint256) {
-        return
-        stakeRecord[_account].previousReward +
-        calculateReward(
-            stakeRecord[_account].amount,
-            stakeRecord[_account].lastUpdated
-        );
-    }
-
-    function totalStaked() public view returns (uint256) {
-        return totalSupply;
-    }
-
+    /** 合约控制部分 */
     function pause() public onlyOwner {
         _pause();
     }
@@ -111,6 +121,8 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         _unpause();
     }
 
+
+    /** 质押配置 */
     function setStakingBank(address _stakingBank) public onlyOwner {
         require(
             _stakingBank != address(0),
@@ -119,35 +131,150 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         stakingBank = _stakingBank;
     }
 
-    modifier updateReward(address _account) {
-        uint256 staked = stakeRecord[_account].amount;
-        if (staked > 0) {
-            uint256 reward = calculateReward(
-                staked,
-                stakeRecord[_account].lastUpdated
-            );
-            stakeRecord[_account].previousReward += reward;
-        }
-        stakeRecord[msg.sender].lastUpdated = block.timestamp;
-        _;
+    function setRewardRate(uint256 _rewardRate) public onlyOwner {
+        require(
+            _rewardRate != 0,
+            "StakingVault: staking rewad rate cannot be 0"
+        );
+        rewardRate = _rewardRate;
     }
 
+    function setStakingTime(uint256 _stakingTime) public onlyOwner {
+        require(
+            _stakingTime != 0,
+            "StakingVault: staking time cannot be 0"
+        );
+        stakingTime = _stakingTime;
+    }
+
+
+    /** 质押信息查询 */
+
+    // 计算用户质押总额
+    function _getStakedOf(address _account) private view returns (uint256){
+        require(
+            userStateRecord[_account].stakedAmount != 0,
+            "StakingVault: you never stake"
+        );
+        uint256 amount = 0;
+        for (uint256 i = 0; i < userStateRecord[_account].stakeRecords.length; ++i) {
+            amount += userStateRecord[_account].stakeRecords[i].stakeAmount;
+        }
+        return amount;
+    }
+
+    // 获取用户质押总额
+    function stakedOf(address _account) public view returns (uint256) {
+        return userStateRecord[_account].stakedAmount;
+    }
+
+    // 计算用户收益总额
+    function _getRewardOf(address _account) private view returns (uint256){
+        require(
+            userStateRecord[_account].stakedAmount != 0,
+            "StakingVault: you never stake"
+        );
+        uint256 amount = 0;
+        for (uint256 i = 0; i < userStateRecord[_account].stakeRecords.length; ++i) {
+            RewardsRecord[] memory _rewardsRecord = userStateRecord[_account].stakeRecords[i].rewardsRecords;
+            for (uint256 j = 0; j < _rewardsRecord.length; ++j) {
+                amount += _rewardsRecord[j].rewardsAmount;
+            }
+        }
+        return amount - userStateRecord[_account].rewardsWithdrawAmount;
+    }
+
+    // 获取收益总额
+    function rewardOf(address _account) public view returns (uint256) {
+        return userStateRecord[_account].rewardsAmount;
+    }
+
+    // 获取质押总量
+    function totalStaked() public view returns (uint256) {
+        return totalSupply;
+    }
+
+
+
+    /** 收益计算相关 */
+    // 质押、提取本金、提取收益时更新相关数值
+    // _type: 1-质押，2-提取本金，3-提取收益，4-Owner提取合约内Token
+    function _updateRecord(address _account, uint256 _type, uint256 _amount) private returns (bool) {
+        UserInfo memory userInfo = userStateRecord[_account];
+        RewardsRecord[] memory _rewardsRecord;
+        if (_type == 1) {
+            // 质押
+            userInfo.stakedAmount += _amount;
+            userInfo.stakeRecords[userInfo.stakeRecords.length] = StakeRecord({
+            stakeAmount : _amount,
+            rewardsLastUpdatedTime : 0,
+            rewardsRecords : _rewardsRecord
+            });
+            totalSupply += _amount;
+        } else if (_type == 2) {
+            // 提取本金
+            require(
+                userInfo.stakedAmount < _amount,
+                "StakingVault: your balance is lower than staking amount"
+            );
+            userInfo.stakedAmount -= _amount;
+            for (uint256 i = 0; i < userInfo.stakeRecords.length; ++i) {
+                if (userInfo.stakeRecords[i].stakeAmount <= _amount) {
+                    // 本次质押数额不足提取本金
+                    _amount -= userInfo.stakeRecords[i].stakeAmount;
+                    delete userInfo.stakeRecords[i];
+                } else {
+                    userInfo.stakeRecords[i].stakeAmount -= _amount;
+                    _amount = 0;
+                }
+            }
+            totalSupply -= _amount;
+        } else if (_type == 3) {
+            // 提取收益
+            require(
+                _getRewardsBalanceOf(_account) < _amount,
+                "StakingVault: your balance is lower than staking rewards amount"
+            );
+            // 更新提取收益的总额
+            userInfo.rewardsWithdrawAmount += _amount;
+        } else if (_type == 4) {
+            // 提取合约内代币
+            totalSupply -= _amount;
+        } else {
+            require(
+                false,
+                "StakingVault: _type error"
+            );
+        }
+    }
+
+
+    /** 质押操作 */
     function stake(
         uint256 _amount
-    ) public nonReentrant updateReward(msg.sender) {
+    ) public nonReentrant {
         require(_amount > 0, "StakingVault: amount must be greater than 0");
 
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
-        totalSupply += _amount;
-        stakeRecord[msg.sender].amount += _amount;
+
+        _updateRecord(msg.sender, 1, _amount);
 
         emit Staked(msg.sender, _amount);
     }
 
+
+    /** 提取操作 */
+
+    // 获取收益余额
+    function _getRewardsBalanceOf(address _account) private view returns (uint256) {
+        return userStateRecord[_account].rewardsAmount - userStateRecord[_account].rewardsWithdrawAmount;
+    }
+
+    // 质押用户提取
     function withdraw(
         uint256 _amount
-    ) public nonReentrant updateReward(msg.sender) {
-        uint256 staked = stakeRecord[msg.sender].amount;
+    ) public nonReentrant {
+        uint256 staked = userStateRecord[msg.sender].stakedAmount;
         require(
             _amount <= staked,
             "StakingVault: withdraw amount cannot be greater than staked amount"
@@ -156,17 +283,43 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
 
         stakingToken.safeTransferFrom(address(this), msg.sender, _amount);
 
-        totalSupply -= _amount;
-        stakeRecord[msg.sender].amount -= _amount;
+        _updateRecord(msg.sender, 2, _amount);
+
         emit Withdraw(msg.sender, _amount);
     }
 
-    function claimReward() public nonReentrant updateReward(msg.sender) {
-        uint256 reward = stakeRecord[msg.sender].previousReward;
-        require(reward >= 0, "StakingVault: no rewards to claim");
+    // 管理员提取
+    function withdrawOwner(
+        uint256 _amount
+    ) public nonReentrant onlyOwner {
+        require(_amount > 0, "StakingVault: _amount must be > 0");
 
-        rewardsToken.safeTransferFrom(stakingBank, msg.sender, reward);
-        stakeRecord[msg.sender].previousReward = 0;
-        emit RewardClaimed(msg.sender, reward);
+        stakingToken.safeTransferFrom(address(this), msg.sender, _amount);
+
+        _updateRecord(msg.sender, 4, _amount);
+
+        emit WithdrawOwner(msg.sender, _amount);
+    }
+
+
+
+    /** 收益计算部分 */
+    // TODO 计算收益，更新收益，接受外部调用
+    function calculateReward(
+        uint256 _amount,
+        uint256 _from
+    ) public view returns (uint256) {
+        return ((_amount * (block.timestamp - _from)) * rewardRate) / 1e18;
+    }
+
+    /** 提取收益 */
+    function claimReward(uint256 _amount) public nonReentrant {
+        require(_amount >= 0, "StakingVault: claim amount must > 0");
+
+        rewardsToken.safeTransferFrom(stakingBank, msg.sender, _amount);
+
+        _updateRecord(msg.sender, 3, _amount);
+
+        emit RewardClaimed(msg.sender, _amount);
     }
 }
