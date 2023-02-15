@@ -53,15 +53,15 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         uint256 lastCalcTime;
     }
 
-    // 存放一个用户质押详情
+    // 存放一个用户质押、奖励、提取详情
     struct UserInfo {
         // 质押总额
         uint256 stakedAmount;
-        // 用户奖励总额，不包括邀请奖励
+        // 用户质押奖励总额（改名字）
         uint256 rewardsAmount;
         // TODO 用户邀请奖励（指定时间链下调用合约更新，与质押管理费一起刷新）
         uint256 referrerRewardsAmount;
-        // 用户奖励提取总额
+        // 用户质押奖励提取总额（改名字）
         uint256 rewardsWithdrawAmount;
         // TODO 用户邀请奖励提取总额
         uint256 referrerRewardsWithdrawAmount;
