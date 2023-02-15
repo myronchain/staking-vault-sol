@@ -16,6 +16,10 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 6. 获取合约的质押总额
 7. 获取指定人的质押总额
 8. TODO 更新收益数值
+9. 保存邀请人
+10. 查看邀请人
+11. TODO 更新管理费用
+
 */
 contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -29,6 +33,10 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     struct StakeRecord {
         // 质押数量
         uint256 stakeAmount;
+        // 质押管理费（指定时间链下调用合约更新）
+        uint256 manageFee;
+        // 质押时间
+        uint256 stakeTime;
         // 上次更新奖励的时间
         uint256 rewardsLastUpdatedTime;
         // 此质押奖励历史记录
@@ -39,7 +47,7 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     struct RewardsRecord {
         // 质押数量
         uint256 stakeAmount;
-        // 奖励数量
+        // 奖励数量（指定时间链下调用合约更新）
         uint256 rewardsAmount;
         // 计算时间
         uint256 lastCalcTime;
@@ -49,8 +57,10 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     struct UserInfo {
         // 质押总额
         uint256 stakedAmount;
-        // 用户奖励总额
+        // 用户奖励总额，不包括邀请奖励
         uint256 rewardsAmount;
+        // TODO 用户邀请奖励（指定时间链下调用合约更新，与质押管理费一起刷新）
+        uint256 referrerRewardsAmount;
         // 用户奖励提取总额
         uint256 rewardsWithdrawAmount;
         // 用户所有质押记录
@@ -78,8 +88,8 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
 
     // Mapping of the referrer(value) of user(key)
     mapping(address => address) private userReferrer;
-    // Mapping of the user(value) of referrer(key)
-    mapping(address => address) private referrerUser;
+    // Mapping of the users(value) of referrer(key)
+    mapping(address => address[]) private referrerUsers;
 
 
     /** 构造函数 */
@@ -150,7 +160,7 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
 
     /** 质押信息查询 */
 
-    // 计算用户质押总额
+    // 计算用户质押总额 TODO 减去管理费用
     function _getStakedOf(address _account) private view returns (uint256){
         require(
             userStateRecord[_account].stakedAmount != 0,
@@ -199,7 +209,7 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     /** 收益计算相关 */
     // 质押、提取本金、提取收益时更新相关数值
     // _type: 1-质押，2-提取本金，3-提取收益，4-Owner提取合约内Token
-    function _updateRecord(address _account, uint256 _type, uint256 _amount) private returns (bool) {
+    function _updateRecord(address _account, uint256 _type, uint256 _amount) private {
         UserInfo memory userInfo = userStateRecord[_account];
         RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
@@ -208,11 +218,13 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
             userInfo.stakeRecords[userInfo.stakeRecords.length] = StakeRecord({
             stakeAmount : _amount,
             rewardsLastUpdatedTime : 0,
-            rewardsRecords : _rewardsRecord
+            rewardsRecords : _rewardsRecord,
+            manageFee: 0,
+            stakeTime: block.timestamp
             });
             totalSupply += _amount;
         } else if (_type == 2) {
-            // 提取本金
+            // 提取本金 TODO 减去管理费用
             require(
                 userInfo.stakedAmount < _amount,
                 "StakingVault: your balance is lower than staking amount"
@@ -293,11 +305,8 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         uint256 _amount
     ) public nonReentrant onlyOwner {
         require(_amount > 0, "StakingVault: _amount must be > 0");
-
         stakingToken.safeTransferFrom(address(this), msg.sender, _amount);
-
         _updateRecord(msg.sender, 4, _amount);
-
         emit WithdrawOwner(msg.sender, _amount);
     }
 
@@ -315,11 +324,22 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     /** 提取收益 */
     function claimReward(uint256 _amount) public nonReentrant {
         require(_amount >= 0, "StakingVault: claim amount must > 0");
-
         rewardsToken.safeTransferFrom(stakingBank, msg.sender, _amount);
-
         _updateRecord(msg.sender, 3, _amount);
-
         emit RewardClaimed(msg.sender, _amount);
+    }
+
+    /** 邀请人相关 */
+    function setReferrer(address _referrer) public {
+        require(
+            userReferrer[msg.sender] != address(0),
+            "StakingVault: already set referrer"
+        );
+        userReferrer[msg.sender] = _referrer;
+        referrerUsers[_referrer][referrerUsers[_referrer].length] = msg.sender;
+    }
+
+    function getReferrer() public view  returns (address){
+        return userReferrer[msg.sender];
     }
 }
