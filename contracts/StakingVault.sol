@@ -8,17 +8,26 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
-1. 质押
+1. 质押代币
+
+8. 获取合约的质押总额
+9. 获取指定人的质押总额
+
 2. 提取本金
-3. 提取收益
-4. 提取给Owner
-5. 获取指定人的收益总额
-6. 获取合约的质押总额
-7. 获取指定人的质押总额
-8. TODO 更新收益数值
-9. 保存邀请人
-10. 查看邀请人
-11. TODO 更新管理费用
+3. 提取质押收益
+4. 提取推荐收益
+5. 提取代币给Owner
+
+6. 获取指定人的收益历史总额
+7. 获取指定人的收益余额
+14. TODO 获取指定人邀请收益历史总额
+15. TODO 获取指定人邀请收益余额
+10. TODO 更新收益相关数值
+
+13. TODO 更新管理费用
+
+11. 保存邀请人
+12. 查看邀请人
 
 */
 contract StakingVault is Ownable, Pausable, ReentrancyGuard {
