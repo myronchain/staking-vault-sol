@@ -63,6 +63,8 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         uint256 referrerRewardsAmount;
         // 用户奖励提取总额
         uint256 rewardsWithdrawAmount;
+        // TODO 用户邀请奖励提取总额
+        uint256 referrerRewardsWithdrawAmount;
         // 用户所有质押记录
         StakeRecord[] stakeRecords;
     }
