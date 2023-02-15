@@ -39,7 +39,88 @@ StakingVault：质押合约
 
   - `amount`: 质押数量
 
-- 
+- TODO
+
+## 合约函数
+
+### StakingVault
+
+#### 质押相关
+
+- 质押代币
+  - 函数名：stake
+
+  - 参数：_amount
+
+- 设置质押时间
+  - 函数名：setStakingTime
+  - 参数：_stakingTime
+
+- 设置质押收益率
+  - 函数名：setRewardRate
+  - 参数：_rewardRate
+
+- 设置质押银行，用于提取收益
+  - 函数名：setStakingBank
+  - 参数：_stakingBank
+
+- 获取合约的质押总额
+  - 函数名：totalStaked
+  - 参数：空
+
+- 获取总质押人数（近30天）
+- 获取总质押金额（近30天）
+- 获取指定人的质押总额
+  - 函数名：stakedOf
+  - 参数：_account
+
+
+#### 提取相关
+
+- 提取本金
+  - 函数名：withdraw
+  - 参数：_amount
+- 提取质押收益
+  - 函数名：claimStakeReward
+  - 参数：_amount
+- 提取推荐收益
+  - 函数名：claimReferrerReward
+  - 参数：_amount
+- 提取所有本金+收益
+  - 函数名：claimAllReward
+  - 参数：_account
+- 提取代币给Owner
+  - 函数名：withdrawOwner
+  - 参数：_amount
+- 计算收益相关数值(定时调用)
+  - 函数名：calculateReward
+  - 参数：无
+- 更新管理费用，然后将邀请奖励费用transfer给推荐人(定时调用)
+  - 函数名：calculateManageFee
+  - 参数：无
+- 获取指定人的收益历史总额
+  - 函数名：getRewardCount
+  - 参数：_account
+- 获取指定人的收益余额
+  - 函数名：getRewardsBalance
+  - 参数：_account
+- 获取指定人邀请收益历史总额
+  - 函数名：getReferrerRewardCount
+  - 参数：_account
+- 获取指定人邀请收益余额
+  - 函数名：getReferrerRewardsBalance
+  - 参数：_account
+
+#### 推荐相关
+
+- 保存邀请人
+  - 函数：setReferrer
+  - 参数：_referrer
+- 查看邀请人
+  - 函数：getReferrer
+  - 参数：无
+
+
 
 
 ## 安装环境

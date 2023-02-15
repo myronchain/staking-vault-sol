@@ -52,14 +52,13 @@ describe("StakingVault Main Token Test", function () {
     });
   });
 
-  // describe("Transactions", function () {
-  //   it("Should mint correctly", async function () {
-  //     const tx = await svMainToken.mint(admin.address, 1, 1);
-  //     await tx.wait();
-  //     const _balance = await svMainToken.balanceOf(admin.address);
-  //     expect(_balance).to.equal(1);
-  //   });
-  //
+  describe("Stake", function () {
+    it("Should stake correctly", async function () {
+      const tx = await svMainToken.mainTokenStake();
+      tx.values(1);
+      await tx.wait();
+    });
+  });
   //   it("Should mint with correct token ID", async function () {
   //     let tx = await svMainToken.mint(admin.address, 1, 1);
   //     let rc = await tx.wait();
