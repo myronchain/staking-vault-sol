@@ -29,6 +29,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 11. 保存邀请人
 12. 查看邀请人
 
+设置质押时间
+设置质押收益率
+
 */
 contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
