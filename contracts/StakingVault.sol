@@ -140,6 +140,9 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
 
     // 质押、提取本金、提取收益时更新相关数值
     modifier _updateRecord(address _account, uint256 _type, uint256 _amount) {
+        require(_account != address(0), "StakingVault: _account must not be zero address");
+        require(_type > 0, "StakingVault: _type must > 0");
+        require(_amount > 0, "StakingVault: amount must > 0");
         // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取推荐收益
         UserInfo storage userInfo = addressUserInfo[_account];
         // RewardsRecord[] memory _rewardsRecord;
@@ -165,20 +168,23 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         } else if (_type == 2) {
             // 提取本金
             require(
-                userInfo.stakeAmount - userInfo.manageFeeAmount < _amount,
+                userInfo.stakeAmount - userInfo.manageFeeAmount >= _amount,
                 "StakingVault: your balance is lower than staking amount"
             );
             userInfo.stakeAmount -= _amount;
             for (uint256 i = 0; i < userInfo.stakeRecordSize; ++i) {
-                if (addressStakeRecord[_account][i].stakeAmount != 0){
-                    if (_getStakeBalance(addressStakeRecord[_account][i]) <= _amount) {
-                        // 此质押数额不足提取本金
-                        _amount -= _getStakeBalance(addressStakeRecord[_account][i]);
-                        delete addressStakeRecord[_account][i];
-                    } else {
-                        addressStakeRecord[_account][i].stakeAmount -= _amount;
-                        _amount = 0;
-                    }
+                uint256 _balance = addressStakeRecord[_account][i].stakeAmount - addressStakeRecord[_account][i].manageFee;
+                if (_balance <= 0){
+                    continue;
+                }
+                if (_balance <= _amount) {
+                    // 此质押数额不足提取本金
+                    _amount -= _balance;
+                    delete addressStakeRecord[_account][i];
+                    userInfo.stakeRecordSize --;
+                } else {
+                    addressStakeRecord[_account][i].stakeAmount -= _amount;
+                    _amount = 0;
                 }
             }
             totalSupply -= _amount;
@@ -214,14 +220,18 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         _unpause();
     }
 
+    // _transfer 用于主代币转出、Token转入转出
     function _transfer(IERC20 token, address _from, address _to, uint256 _value) private {
-        require(_from == address(0), "StakingVault: from address can't be 0");
-        require(_to == address(0), "StakingVault: to address can't be 0");
-        require(_value == 0, "StakingVault: value can't be 0");
-        if (isMainToken && _to != address(this)) {
+        require(
+            _from != address(0) || _from != address(this),
+            "StakingVault: from address can't be 0 when from is not this contract"
+        );
+        require(_to != address(0), "StakingVault: to address can't be 0");
+        require(_value != 0, "StakingVault: value can't be 0");
+        if (isMainToken) {
             // 主代币转出
             // Call returns a boolean value indicating success or failure.
-            (bool sent,) = _to.call{value : msg.value}("");
+            (bool sent,) = _to.call{value : _value}("");
             require(sent, "StakingVault: Failed to send Ether");
         } else {
             token.safeTransferFrom(_from, _to, _value);
@@ -242,7 +252,6 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     // 主代币转账
     function mainTokenStake() public payable nonReentrant _updateRecord(msg.sender, 1, msg.value) {
         require(msg.value > 0, "StakingVault: amount must be greater than 0");
-        // _transfer(stakingToken, msg.sender, address(this), msg.value);
         emit Staked(msg.sender, msg.value);
     }
 
@@ -285,7 +294,7 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
         return totalSupply;
     }
 
-    // 获取总质押人数和总质押金额
+    // ✅ 获取总质押人数和总质押金额
     function getStakeNum(uint256 startTime, uint256 endTime) public view returns(uint256, uint256) {
         uint256 count = 0;
         uint256 sum = 0;
@@ -311,18 +320,15 @@ contract StakingVault is Ownable, Pausable, ReentrancyGuard {
     }
 
     // 获取质押余额，减去管理费部分的余额
-    function _getStakeBalance(StakeRecord memory stakeRecord) private pure returns (uint256) {
-        return stakeRecord.stakeAmount - stakeRecord.manageFee;
+    function getStakeBalance(address _account) public view returns (uint256) {
+        return addressUserInfo[_account].stakeAmount - addressUserInfo[_account].manageFeeAmount;
     }
 
     /** 提取相关 */
-    // 提取本金
-    function withdraw(
+    // ✅ 提取本金
+    function withdrawStake(
         uint256 _amount
-    ) public nonReentrant  _updateRecord(msg.sender, 2, _amount) {
-        uint256 staked = addressUserInfo[msg.sender].stakeAmount;
-        require(_amount <= staked, "StakingVault: withdraw amount cannot be greater than staked amount");
-        require(staked > 0, "StakingVault: no tokens staked");
+    ) public nonReentrant _updateRecord(msg.sender, 2, _amount) {
         _transfer(stakingToken, address(this), msg.sender, _amount);
         emit Withdraw(msg.sender, _amount);
     }
