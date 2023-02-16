@@ -68,8 +68,14 @@ StakingVault：质押合约
   - 函数名：totalStaked
   - 参数：空
 
-- 获取总质押人数（近30天）
-- 获取总质押金额（近30天）
+- 获取一段时间内的总质押人数(不按天拆分)
+  - 函数名：getStakeNum
+  - 参数：startTime、endTime
+
+- 获取一段时间内的总质押金额(不按天拆分)
+  - 函数名：getStakeAmount
+  - 参数：startTime、endTime
+
 - 获取指定人的质押总额
   - 函数名：stakedOf
   - 参数：_account
