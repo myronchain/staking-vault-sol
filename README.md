@@ -49,7 +49,6 @@ StakingVault：质押合约
 
 - 质押代币
   - 函数名：stake
-
   - 参数：_amount
 
 - 设置质押时间
@@ -64,7 +63,7 @@ StakingVault：质押合约
   - 函数名：setStakingBank
   - 参数：_stakingBank
 
-- 获取合约的质押总额
+- ✅ 获取合约的质押总额
   - 函数名：totalStaked
   - 参数：空
 
@@ -76,7 +75,7 @@ StakingVault：质押合约
   - 函数名：getStakeAmount
   - 参数：startTime、endTime
 
-- 获取指定人的质押总额
+- ✅ 获取指定人的质押总额
   - 函数名：stakedOf
   - 参数：_account
 

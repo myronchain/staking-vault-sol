@@ -11,7 +11,7 @@ import "hardhat/console.sol";
 import "./StakeData.sol";
 
 /**
-* 质押计算合约，质押代币存储合约
+* 邀请人相关
 */
 contract Recommend is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -37,11 +37,14 @@ contract Recommend is Ownable, Pausable, ReentrancyGuard {
         _unpause();
     }
 
-    /** 邀请人相关 */
     function setReferrer(address _referrer) public {
         require(svData.getUserReferrer(msg.sender) != address(0), "Already set referrer");
         svData.setUserReferrer(msg.sender, _referrer);
         svData.pushReferrerUsers(_referrer,msg.sender);
+    }
+
+    function getReferrer(address _user) public returns(address) {
+        return svData.getUserReferrer(msg.sender);
     }
 
 }

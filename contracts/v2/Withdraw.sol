@@ -17,7 +17,7 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     event Staked(address _from, uint256 _amount);
-    event Withdraw(address _from, uint256 _amount);
+    event WithdrawStake(address _from, uint256 _amount);
     event WithdrawOwner(address _from, uint256 _amount);
     event RewardStakeClaimed(address _from, uint256 _amount);
     event RewardReferrerClaimed(address _from, uint256 _amount);
@@ -125,7 +125,7 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         uint256 _amount
     ) public nonReentrant _updateRecord(msg.sender, 2, _amount) {
         _transfer(svData.getStakingToken(), address(this), msg.sender, _amount);
-        emit Withdraw(msg.sender, _amount);
+        emit WithdrawStake(msg.sender, _amount);
     }
 
     // 提取质押收益
@@ -147,7 +147,7 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         if (_amount1 > 0){
             _updateRecordHelper(2,_amount1);
             _transfer(svData.getStakingToken(), svData.getStakingBank(), msg.sender, _amount1);
-            emit Withdraw(msg.sender, _amount1);
+            emit WithdrawStake(msg.sender, _amount1);
         }
         // 提取收益奖励
         uint256 _amount2 = svData.getAddressUserInfo(_account).stakeRewardsAmount - svData.getAddressUserInfo(_account).stakeRewardsWithdrawAmount;

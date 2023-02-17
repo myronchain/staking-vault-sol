@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "hardhat/console.sol";
 
 /**
 * 质押数据存储合约
@@ -110,10 +111,12 @@ contract StakeData is Ownable, Pausable {
         bool _isMainToken,
         address _stakingToken,
         address _stakingBank,
-        uint256 _rewardRate
+        address _rewardsToken,
+        uint256 _rewardRate,
+        uint256 _stakeRewardsStartTime,
+        uint256 _manageFeeStartTime,
+        uint256 _manageFeeRate
     ) {
-        stakeRewardsStartTime = 3600 * 24 * 30;
-        manageFeeStartTime = 3600 * 24 * 1;
         require(!isMainToken && _stakingToken != address(0),"staking token address cannot be 0");
         require(!isMainToken && _stakingBank != address(0), "staking bank address cannot be 0");
         require(_rewardRate > 0, "reward rate must be greater than 0");
@@ -123,8 +126,11 @@ contract StakeData is Ownable, Pausable {
         if (_isMainToken) {
             stakingToken = IERC20(_stakingToken);
         }
-        rewardsToken = IERC20(_stakingToken);
+        rewardsToken = IERC20(_rewardsToken);
         rewardRate = _rewardRate;
+        stakeRewardsStartTime = _stakeRewardsStartTime;
+        manageFeeStartTime = _manageFeeStartTime;
+        manageFeeRate = _manageFeeRate;
     }
 
     modifier _callGet {
@@ -200,6 +206,7 @@ contract StakeData is Ownable, Pausable {
 
     function setTotalStaked(uint256 _totalStaked) public _callSet {
         require(_totalStaked != 0, "totalStakedcannot be 0");
+        console.log("setTotalStaked: ", _totalStaked);
         totalStaked = _totalStaked;
     }
 

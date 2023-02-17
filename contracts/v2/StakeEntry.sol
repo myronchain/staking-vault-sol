@@ -113,6 +113,7 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
 
         // RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
+            console.log("stake:", _amount);
             // 质押
             svData.setTotalStaked(svData.getTotalStaked()+ _amount);
             if(!userInfo.exsits){
@@ -177,29 +178,67 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
         } else {
             require(false, "_type error");
         }
-        svData.setAddressUserInfo(_account,userInfo);
+        svData.setAddressUserInfo(_account, userInfo);
         _;
+    }
+
+    // 计算收益，更新收益，接受外部调用
+    function calculateReward() public {
+        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
+            // 增加的用户质押奖励总额
+            uint256 _addStakeRewardsAmount = 0;
+            StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i));
+            for (uint256 j = 0; j < userInfo.stakeRecordSize; ++j) {
+                // 更新质押奖励
+                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j);
+                if (_stakeRecords.stakeAmount == 0) {
+                    continue;
+                }
+                if (block.timestamp >= svData.getStakeRewardsStartTime() + _stakeRecords.rewardsLastUpdatedTime) {
+                    console.log("calc rewards");
+                    // 支持很久没有刷新的特殊情况
+                    if (_stakeRecords.rewardsLastUpdatedTime + svData.getStakeRewardsStartTime() > block.timestamp) {
+                        _stakeRecords.rewardsLastUpdatedTime = block.timestamp;
+                    } else {
+                        _stakeRecords.rewardsLastUpdatedTime = _stakeRecords.rewardsLastUpdatedTime + svData.getStakeRewardsStartTime();
+                    }
+                    uint256 _rewardAmount = _stakeRecords.stakeAmount * svData.getRewardRate() / 1e8;
+                    StakeData.RewardsRecord memory _rewardsRecord = svData.getStakeRecordRewardsRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords.rewardsRecordSize);
+                    _rewardsRecord.stakeAmount = _stakeRecords.stakeAmount;
+                    _rewardsRecord.rewardsAmount = _rewardAmount;
+                    _rewardsRecord.lastCalcTime = block.timestamp;
+                    _addStakeRewardsAmount += _rewardAmount;
+                    _stakeRecords.rewardsRecordSize++;
+                    svData.setStakeRecordRewardsRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords.rewardsRecordSize, _rewardsRecord);
+                }
+                svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
+            }
+            userInfo.stakeRewardsAmount += _addStakeRewardsAmount;
+            console.log("userInfo" , userInfo.stakeRewardsAmount);
+            svData.setAddressUserInfo(svData.getUserStateRecordKeys(i), userInfo);
+        }
     }
 
     // 更新管理费用，然后将邀请奖励费用transfer给推荐人
     function calculateManageFee() public {
-        for(uint256 i=0;i<svData.getUserStateRecordKeysSize();++i){
+        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
             // 增加的用户管理费总额
             uint256 _addManangeAmount = 0;
             // 增加的用户邀请奖励总额
             uint256 _addReferrerRewardsAmount = 0;
             StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i));
-            for(uint256 j=0;j<userInfo.stakeRecordSize;++j){
+            for (uint256 j = 0; j < userInfo.stakeRecordSize; ++j) {
                 StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i),j);
                 // 更新质押管理费
                 if(_stakeRecords.manageFee == 0 && block.timestamp >= svData.getManageFeeStartTime() +_stakeRecords.stakeTime){
-                    _stakeRecords.manageFee = svData.getManageFeeRate()  * _stakeRecords.stakeAmount / 1e4;
+                    _stakeRecords.manageFee = svData.getManageFeeRate()  * _stakeRecords.stakeAmount / 1e8;
                     _addManangeAmount += _stakeRecords.manageFee;
                     // 更新邀请奖励
-                    _addReferrerRewardsAmount+=svData.getRewardRate() * _stakeRecords.stakeAmount / 1e4;
+                    _addReferrerRewardsAmount+=svData.getRewardRate() * _stakeRecords.stakeAmount / 1e8;
                 }
                 svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i),j,_stakeRecords);
             }
+            userInfo.manageFeeAmount += _addManangeAmount;
             // 更新推荐人的推荐奖励
             userInfo.referrerRewardsAmount += _addReferrerRewardsAmount;
             svData.setAddressUserInfo(svData.getUserStateRecordKeys(i),userInfo);
@@ -218,6 +257,10 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
 
     function getRewardsBalance(address _account) public view returns (uint256) {
         return _getRewardsBalance(_account);
+    }
+
+    function getTotalStaked() public view returns (uint256) {
+        return svData.getTotalStaked();
     }
 
     // 获取指定人邀请收益历史总额
