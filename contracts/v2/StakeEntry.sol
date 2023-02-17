@@ -23,14 +23,18 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
     event RewardReferrerClaimed(address _from, uint256 _amount);
 
     StakeData private svData;
+    address private withdrawContractAddress;
 
     /** 构造函数 */
-    constructor(address counterAddress) {
-        svData = StakeData(counterAddress);
+    constructor(address _stakeDataAddress, address _withdrawContractAddress) {
+        require(_stakeDataAddress != address(0), "_stakeDataAddress can't be 0");
+        require(_withdrawContractAddress != address(0), "_withdrawContractAddress can't be 0");
+        withdrawContractAddress = _withdrawContractAddress;
+        svData = StakeData(_stakeDataAddress);
     }
 
     // _transfer 用于主代币转出、Token转入转出
-    function _transfer(IERC20 token, address _from, address _to, uint256 _value) private {
+    function _transfer(IERC20 _token, address _from, address _to, uint256 _value) private {
         require(
             _from != address(0) || _from != address(this),
             "from address can't be 0 when from is not this contract"
@@ -38,63 +42,65 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
         require(_to != address(0), "to address can't be 0");
         require(_value != 0, "value can't be 0");
         if (svData.getIsMainToken()) {
+            console.log("main token transfer");
             // 主代币转出
             // Call returns a boolean value indicating success or failure.
             (bool sent,) = _to.call{value : _value}("");
             require(sent, "Failed to send Ether");
         } else {
-            token.safeTransferFrom(_from, _to, _value);
+            console.log("token transfer");
+            console.log("token:", _token.totalSupply());
+            console.log("to:", _to);
+            console.log("value:", _value);
+            _token.safeTransferFrom(_from, _to, _value);
         }
     }
 
     /** 质押相关 */
     // 收到主代币认为调用质押函数
-    receive() external payable{
+    receive() external payable {
         mainTokenStake();
-    }
-
-    // 查看合约主代币金额
-    function getMainTokenBalance() public view returns (uint256) {
-        return address(this).balance;
     }
 
     // 主代币转账
     function mainTokenStake() public payable nonReentrant _updateRecord(msg.sender, 1, msg.value) {
         require(msg.value > 0, "amount must > 0");
+        // 发送给提取合约
+        _transfer(svData.getStakingToken(), address(this), withdrawContractAddress, msg.value);
         emit Staked(msg.sender, msg.value);
     }
 
-    // 质押
+    // Token质押
     function tokenStake(
         uint256 _amount
     ) public nonReentrant _updateRecord(msg.sender, 1, _amount) {
-        require(_amount > 0, "amount must >  0");
-        _transfer(svData.getStakingToken(), msg.sender, address(this), _amount);
+        require(_amount > 0, "amount must > 0");
+        _transfer(svData.getStakingToken(), msg.sender, withdrawContractAddress, _amount);
         emit Staked(msg.sender, _amount);
     }
 
-    // ✅ 获取总质押人数和总质押金额
-    function getStakeNum(uint256 startTime, uint256 endTime) public view returns(uint256, uint256) {
+    // 获取总质押人数和总质押金额
+    function getStakeNum(uint256 startTime, uint256 endTime) public view returns (uint256, uint256) {
         uint256 count = 0;
         uint256 sum = 0;
-        for(uint256 i=0;i<svData.getUserStateRecordKeysSize();++i){
+        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
             uint256 _stakeRecordsSize = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i)).stakeRecordSize;
             bool addedCount = false;
-            for(uint256 j=0;j<_stakeRecordsSize;++j){
-                if (svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i),j).stakeTime >= startTime &&  svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i),j).stakeTime <= endTime) {
-                    if (!addedCount){
+            for (uint256 j = 0; j < _stakeRecordsSize; ++j) {
+                if (svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j).stakeTime >= startTime && svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j).stakeTime <= endTime) {
+                    if (!addedCount) {
                         count ++;
                         addedCount = true;
                     }
-                    sum +=svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i),j).stakeAmount;
+                    sum += svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j).stakeAmount;
                 }
             }
         }
-        return (count,sum);
+        return (count, sum);
     }
 
     // 获取用户质押总额
-    function stakedOf(address _account) public view returns (uint256) {
+    function getStakeAmount(address _account) public view returns (uint256) {
         return svData.getAddressUserInfo(_account).stakeAmount;
     }
 
@@ -108,73 +114,36 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
         require(_account != address(0), "_account must not be zero address");
         require(_type > 0, "_type must > 0");
         require(_amount > 0, "amount must > 0");
-        // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取推荐收益
+        // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取邀请收益
         StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(_account);
 
         // RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
             console.log("stake:", _amount);
             // 质押
-            svData.setTotalStaked(svData.getTotalStaked()+ _amount);
-            if(!userInfo.exsits){
+            svData.setTotalStaked(svData.getTotalStaked() + _amount);
+            if (!userInfo.exsits) {
                 svData.pushUserStateRecordKeys(_account);
                 userInfo.exsits = true;
             }
-
             // address => StakeRecordId => StakeRecord
-            StakeData.StakeRecord memory _stakeRecord ;
+            StakeData.StakeRecord memory _stakeRecord;
             _stakeRecord.stakeAmount = _amount;
             _stakeRecord.rewardsLastUpdatedTime = block.timestamp;
             _stakeRecord.manageFee = 0;
             _stakeRecord.stakeTime = block.timestamp;
             _stakeRecord.rewardsRecordSize = 0;
-            svData.setAddressStakeRecord(_account,userInfo.stakeRecordSize,_stakeRecord);
+            svData.setAddressStakeRecord(_account, userInfo.stakeRecordSize, _stakeRecord);
             userInfo.stakeRecordSize ++;
             userInfo.stakeAmount += _amount;
         } else if (_type == 2) {
             // 提取本金
-            require(
-                userInfo.stakeAmount - userInfo.manageFeeAmount >= _amount,
-                "your balance is lower than staking amount"
-            );
-            userInfo.stakeAmount -= _amount;
-            for (uint256 i = 0; i < userInfo.stakeRecordSize; ++i) {
-                StakeData.StakeRecord memory _addressStakeRecord = svData.getAddressStakeRecord(_account,i);
-                uint256 _balance = _addressStakeRecord.stakeAmount - _addressStakeRecord.manageFee;
-                if (_balance <= 0){
-                    continue;
-                }
-                if (_balance <= _amount) {
-                    // 此质押数额不足提取本金
-                    _amount -= _balance;
-                    _addressStakeRecord.stakeAmount = 0;
-                    userInfo.stakeRecordSize --;
-                } else {
-                    _addressStakeRecord.stakeAmount -= _amount;
-                    _amount = 0;
-                }
-                svData.setAddressStakeRecord(_account,i,_addressStakeRecord) ;
-            }
-
-            svData.setTotalStaked(svData.getTotalStaked() - _amount);
         } else if (_type == 3) {
             // 提取质押收益
-            require(
-                _getRewardsBalance(_account) < _amount,
-                "your balance is lower than staking rewards amount"
-            );
-            // 更新提取收益的总额
-            userInfo.stakeRewardsWithdrawAmount += _amount;
         } else if (_type == 4) {
             // 提取合约内代币
-            svData.setTotalStaked(svData.getTotalStaked() - _amount);
         } else if (_type == 5) {
-            // 提取推荐收益
-            require(
-                userInfo.referrerRewardsAmount - userInfo.referrerRewardsWithdrawAmount > _amount,
-                "your balance is lower than referrer rewards amount"
-            );
-            userInfo.referrerRewardsWithdrawAmount += _amount;
+            // 提取邀请收益
         } else {
             require(false, "_type error");
         }
@@ -182,7 +151,7 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
         _;
     }
 
-    // 计算收益，更新收益，接受外部调用
+    // 计算更新收益，接受外部调用
     function calculateReward() public {
         for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
             // 增加的用户质押奖励总额
@@ -214,12 +183,12 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
                 svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
             }
             userInfo.stakeRewardsAmount += _addStakeRewardsAmount;
-            console.log("userInfo" , userInfo.stakeRewardsAmount);
+            console.log("userInfo", userInfo.stakeRewardsAmount);
             svData.setAddressUserInfo(svData.getUserStateRecordKeys(i), userInfo);
         }
     }
 
-    // 更新管理费用，然后将邀请奖励费用transfer给推荐人
+    // 更新管理费用
     function calculateManageFee() public {
         for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
             // 增加的用户管理费总额
@@ -227,21 +196,26 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
             // 增加的用户邀请奖励总额
             uint256 _addReferrerRewardsAmount = 0;
             StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i));
+            console.log("calculateManageFee");
             for (uint256 j = 0; j < userInfo.stakeRecordSize; ++j) {
-                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i),j);
+                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j);
                 // 更新质押管理费
-                if(_stakeRecords.manageFee == 0 && block.timestamp >= svData.getManageFeeStartTime() +_stakeRecords.stakeTime){
-                    _stakeRecords.manageFee = svData.getManageFeeRate()  * _stakeRecords.stakeAmount / 1e8;
+                if (_stakeRecords.manageFee == 0 && block.timestamp >= svData.getManageFeeStartTime() + _stakeRecords.stakeTime) {
+                    _stakeRecords.manageFee = svData.getManageFeeRate() * _stakeRecords.stakeAmount / 1e8;
                     _addManangeAmount += _stakeRecords.manageFee;
                     // 更新邀请奖励
-                    _addReferrerRewardsAmount+=svData.getRewardRate() * _stakeRecords.stakeAmount / 1e8;
+                    _addReferrerRewardsAmount += svData.getRewardRate() * _stakeRecords.stakeAmount / 1e8;
                 }
-                svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i),j,_stakeRecords);
+                svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
             }
             userInfo.manageFeeAmount += _addManangeAmount;
-            // 更新推荐人的推荐奖励
-            userInfo.referrerRewardsAmount += _addReferrerRewardsAmount;
-            svData.setAddressUserInfo(svData.getUserStateRecordKeys(i),userInfo);
+            console.log("userInfo.manageFeeAmount:", userInfo.manageFeeAmount);
+            // 更新邀请人的邀请奖励
+            StakeData.UserInfo memory _referrerUserInfo = svData.getAddressUserInfo(svData.getUserReferrer(svData.getUserStateRecordKeys(i)));
+            _referrerUserInfo.referrerRewardsAmount += _addReferrerRewardsAmount;
+            svData.setAddressUserInfo(svData.getUserReferrer(svData.getUserStateRecordKeys(i)), _referrerUserInfo);
+            // 更新遍历的此用户结果
+            svData.setAddressUserInfo(svData.getUserStateRecordKeys(i), userInfo);
         }
     }
 
@@ -271,6 +245,15 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
     // 获取指定人邀请收益余额
     function getReferrerRewardsBalance(address _account) public view returns (uint256) {
         return svData.getAddressUserInfo(_account).referrerRewardsAmount - svData.getAddressUserInfo(_account).referrerRewardsWithdrawAmount;
+    }
+
+    function getWithdrawContractAddress() view public returns (address) {
+        return withdrawContractAddress;
+    }
+
+    function setWithdrawContractAddress(address _withdrawAddress) public onlyOwner {
+        require(_withdrawAddress != address(0), "_withdrawAddress can't be 0");
+        withdrawContractAddress = _withdrawAddress;
     }
 
 }

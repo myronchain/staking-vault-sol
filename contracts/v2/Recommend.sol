@@ -25,8 +25,8 @@ contract Recommend is Ownable, Pausable, ReentrancyGuard {
     StakeData private svData;
 
     /** 构造函数 */
-    constructor(address counterAddress) {
-        svData = StakeData(counterAddress);
+    constructor(address _stakeDataAddress) {
+        svData = StakeData(_stakeDataAddress);
     }
 
     function pause() public onlyOwner {
@@ -38,12 +38,13 @@ contract Recommend is Ownable, Pausable, ReentrancyGuard {
     }
 
     function setReferrer(address _referrer) public {
-        require(svData.getUserReferrer(msg.sender) != address(0), "Already set referrer");
+        require(_referrer != address(0), "_referrer is 0");
+        require(svData.getUserReferrer(msg.sender) == address(0), "Already set referrer");
         svData.setUserReferrer(msg.sender, _referrer);
-        svData.pushReferrerUsers(_referrer,msg.sender);
+        svData.pushReferrerUsers(_referrer, msg.sender);
     }
 
-    function getReferrer(address _user) public returns(address) {
+    function getReferrer() public returns (address) {
         return svData.getUserReferrer(msg.sender);
     }
 

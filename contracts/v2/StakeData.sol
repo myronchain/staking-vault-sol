@@ -69,7 +69,7 @@ contract StakeData is Ownable, Pausable {
     // 管理费率 万分之N
     uint256 private manageFeeRate;
 
-    // 推荐收益 万分之N
+    // 邀请收益 万分之N
     uint256 private referrRate;
 
     // Total amount of tokens staked
@@ -117,7 +117,7 @@ contract StakeData is Ownable, Pausable {
         uint256 _manageFeeStartTime,
         uint256 _manageFeeRate
     ) {
-        require(!isMainToken && _stakingToken != address(0),"staking token address cannot be 0");
+        require(!isMainToken && _stakingToken != address(0), "staking token address cannot be 0");
         require(!isMainToken && _stakingBank != address(0), "staking bank address cannot be 0");
         require(_rewardRate > 0, "reward rate must be greater than 0");
 
@@ -134,24 +134,24 @@ contract StakeData is Ownable, Pausable {
     }
 
     modifier _callGet {
-        require(callGetContract[msg.sender],"you can't call get function");
+        require(callGetContract[msg.sender], "you can't call get function");
         _;
     }
 
     modifier _callSet {
-        require(callSetContract[msg.sender],"you can't call get function");
+        require(callSetContract[msg.sender], "you can't call get function");
         _;
     }
 
-    function getIsMainToken() view public  _callGet returns (bool)  {
+    function getIsMainToken() view public _callGet returns (bool)  {
         return isMainToken;
     }
 
-    function setIsMainToken(bool _isMainToken) public _callSet {
+    function setIsMainToken(bool _isMainToken) public onlyOwner {
         isMainToken = _isMainToken;
     }
 
-    function setStakingBank(address _stakingBank) public _callSet {
+    function setStakingBank(address _stakingBank) public onlyOwner {
         require(_stakingBank != address(0), "staking bank address cannot be 0");
         stakingBank = _stakingBank;
     }
@@ -160,7 +160,7 @@ contract StakeData is Ownable, Pausable {
         return stakingBank;
     }
 
-    function setRewardsToken(IERC20 _rewardsToken) public _callSet {
+    function setRewardsToken(IERC20 _rewardsToken) public onlyOwner {
         rewardsToken = _rewardsToken;
     }
 
@@ -168,7 +168,7 @@ contract StakeData is Ownable, Pausable {
         return IERC20(rewardsToken);
     }
 
-    function setStakingToken(address _stakingToken) public _callSet {
+    function setStakingToken(address _stakingToken) public onlyOwner {
         require(_stakingToken != address(0), "staking bank address cannot be 0");
         stakingToken = IERC20(_stakingToken);
     }
@@ -177,7 +177,7 @@ contract StakeData is Ownable, Pausable {
         return stakingToken;
     }
 
-    function setRewardRate(uint256 _rewardRate) public _callSet {
+    function setRewardRate(uint256 _rewardRate) public onlyOwner {
         require(_rewardRate != 0, "staking rewad rate cannot be 0");
         rewardRate = _rewardRate;
     }
@@ -186,7 +186,7 @@ contract StakeData is Ownable, Pausable {
         return rewardRate;
     }
 
-    function setManageFeeRate(uint256 _manageFeeRate) public _callSet {
+    function setManageFeeRate(uint256 _manageFeeRate) public onlyOwner {
         require(_manageFeeRate != 0, "manage fee rate cannot be 0");
         manageFeeRate = _manageFeeRate;
     }
@@ -223,7 +223,7 @@ contract StakeData is Ownable, Pausable {
         return stakingTime;
     }
 
-    function setStakeRewardsStartTime(uint256 _stakeRewardsStartTime) public _callSet {
+    function setStakeRewardsStartTime(uint256 _stakeRewardsStartTime) public onlyOwner {
         require(_stakeRewardsStartTime != 0, "staking time cannot be 0");
         stakeRewardsStartTime = _stakeRewardsStartTime;
     }
@@ -232,7 +232,7 @@ contract StakeData is Ownable, Pausable {
         return stakeRewardsStartTime;
     }
 
-    function setManageFeeStartTime(uint256 _manageFeeStartTime) public _callSet{
+    function setManageFeeStartTime(uint256 _manageFeeStartTime) public onlyOwner {
         require(_manageFeeStartTime != 0, "staking time cannot be 0");
         manageFeeStartTime = _manageFeeStartTime;
     }
@@ -261,7 +261,7 @@ contract StakeData is Ownable, Pausable {
         return addressUserInfo[_account];
     }
 
-    function setAddressUserInfo(address _account , UserInfo memory _userInfo) public _callSet {
+    function setAddressUserInfo(address _account, UserInfo memory _userInfo) public _callSet {
         addressUserInfo[_account] = _userInfo;
     }
 
@@ -291,23 +291,23 @@ contract StakeData is Ownable, Pausable {
         return referrerUsers[_referrer];
     }
 
-    function pushReferrerUsers(address _referrer,address _users) public _callSet {
+    function pushReferrerUsers(address _referrer, address _users) public _callSet {
         referrerUsers[_referrer].push(_users);
     }
 
-    function addCallGetContract(address _account) public onlyOwner{
+    function addCallGetContract(address _account) public onlyOwner {
         callGetContract[_account] = true;
     }
 
-    function addCallSetContract(address _account) public onlyOwner{
+    function addCallSetContract(address _account) public onlyOwner {
         callSetContract[_account] = true;
     }
 
-    function deleteCallGetContract(address _account) public onlyOwner{
+    function deleteCallGetContract(address _account) public onlyOwner {
         callGetContract[_account] = false;
     }
 
-    function deleteCallSetContract(address _account) public onlyOwner{
+    function deleteCallSetContract(address _account) public onlyOwner {
         callSetContract[_account] = false;
     }
 

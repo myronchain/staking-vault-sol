@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test --network hardhat",
+    "test1": "npx hardhat test --network hardhat ./test/sv-main-test.js",
+    "test2": "npx hardhat test --network hardhat ./test/sv-token-test.js",
     "compile": "npx hardhat compile",
-    "dp-bsctest": "npx hardhat --network bsctest run scripts/deploy.js",
+    "deploy-bsctest": "npx hardhat --network bsctest run scripts/deploy.js",
     "codecov": "npx hardhat coverage --network localhost"
   },
   "keywords": [],

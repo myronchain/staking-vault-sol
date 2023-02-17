@@ -8,13 +8,15 @@ const hre = require("hardhat");
 
 
 // Constants
-const MINTER_ROLE = "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6";
 const network_configs = {
-  mumbai: {
-    USDCAddress: "0x0fa8781a83e46826621b3bc094ea2a0212e71b23",
-  },
-  polygon : {
-    USDCAddress: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+  bsctest: {
+    ERC20_ADDRESS: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
+    STAKING_BANK: "0xfF171DDfB3236940297808345f7e32C4b5BF097f",
+    REWARDS_TOKEN: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
+    STAKE_REWARDS_START_TIME: 3600000 * 24 * 30,
+    REWARD_RATE: 60000000,
+    MANAGE_FEE_START_TIME: 3600000 * 24 * 1,
+    MANAGE_FEE_RATE: 5000000,
   },
 }
 let config;
@@ -32,49 +34,52 @@ async function main() {
   if (hre.network.name === "polygon") {
     config = network_configs.polygon
   } else {
-    config = network_configs.mumbai
+    config = network_configs.rinkeby
   }
 
   console.log("Network: ", hre.network.name)
-  console.log("Metadata URI: ", config.metadata_uri)
+  // Get the ContractFactory
+  const StakeDataFactory = await ethers.getContractFactory("StakeData");
+  const stakeDataContract = await StakeDataFactory.deploy(true, network_configs[hre.network.name].ERC20_ADDRESS, network_configs[hre.network.name].STAKING_BANK, network_configs[hre.network.name].REWARDS_TOKEN, network_configs[hre.network.name].REWARD_RATE, network_configs[hre.network.name].STAKE_REWARDS_START_TIME, network_configs[hre.network.name].MANAGE_FEE_START_TIME, network_configs[hre.network.name].MANAGE_FEE_RATE);
+  await stakeDataContract.deployed();
+  console.log("Deployed success. StakeData Contract address: " + stakeDataContract.address + ", Deploy Address: " + await stakeDataContract.owner())
 
-  const assets = await hre.ethers.getContractFactory("StakingVault");
-  let upgradedAssets = await upgrades.deployProxy(assets,
-    ["StakingVault", "SV", config.metadata_uri],
-    {initializer: "initialize", kind: 'uups'})
-  let a = await upgradedAssets.deployed();
-  const implAddress = await upgrades.erc1967.getImplementationAddress(upgradedAssets.address);
-  const adminAddress = await upgrades.erc1967.getAdminAddress(upgradedAssets.address)
+  const WithdrawFactory = await ethers.getContractFactory("Withdraw");
+  const withdrawContract = await WithdrawFactory.deploy(stakeDataContract.address);
+  await withdrawContract.deployed();
+  console.log("Deployed success. Withdraw Contract address: " + withdrawContract.address + ", Deploy Address: " + await withdrawContract.owner())
 
-  console.log("upgradedAssets proxy deployed to:", upgradedAssets.address);
-  console.log("upgradedAssets admin deployed to", adminAddress);
-  console.log("upgradedAssets implementation deployed to", implAddress);
+  const StakeEntryFactory = await ethers.getContractFactory("StakeEntry");
+  const stakeEntryContract = await StakeEntryFactory.deploy(stakeDataContract.address, withdrawContract.address);
+  await stakeEntryContract.deployed();
+  console.log("Deployed success. StakeEntry Contract address: " + stakeEntryContract.address + ", Deploy Address: " + await stakeEntryContract.owner())
 
-  // We get the store contract to deploy
-  const Stores = await ethers.getContractFactory("StakingVault");
-  const store = await Stores.deploy(upgradedAssets.address, config.USDCAddress);
+  const RecommendFactory = await ethers.getContractFactory("Recommend");
+  const recommendContract = await RecommendFactory.deploy(stakeDataContract.address);
+  await recommendContract.deployed();
+  console.log("Deployed success. Recommend Contract address: " + recommendContract.address + ", Deploy Address: " + await recommendContract.owner())
+  console.log("DEPLOYED CONTRACT SUCCESS\n")
 
-  await store.deployed();
+  // 添加调用权限
+  console.log("SET LIMITS OF AUTHORITY")
+  stakeDataContract.addCallGetContract(withdrawContract.address);
+  stakeDataContract.addCallSetContract(withdrawContract.address);
+  stakeDataContract.addCallGetContract(stakeEntryContract.address);
+  stakeDataContract.addCallSetContract(stakeEntryContract.address);
+  stakeDataContract.addCallGetContract(recommendContract.address);
+  stakeDataContract.addCallSetContract(recommendContract.address);
+  // 设置质押银行为提取合约，用于提取代币
+  stakeDataContract.setStakingBank(withdrawContract.address);
+  console.log("SET LIMITS OF AUTHORITY SUCCESS\n")
 
-  console.log("Store deployed to:", store.address);
-
-  // Set minterRole for Store contract
-  let tx = await upgradedAssets.grantRole(
-    MINTER_ROLE,
-    store.address
-  );
-  await tx.wait();
-  console.log("Grant minter role to Store contract done.")
-
-  await store.deployTransaction.wait([(confirms = 3)]);
   // verify the contracts
-  await hre.run("verify:verify", {
-    address: implAddress,
-  });
-  await hre.run("verify:verify", {
-    address: store.address,
-    constructorArguments: [upgradedAssets.address, config.USDCAddress],
-  });
+  // await hre.run("verify:verify", {
+  //   address: implAddress,
+  // });
+  // await hre.run("verify:verify", {
+  //   address: store.address,
+  //   constructorArguments: [upgradedAssets.address, config.USDCAddress],
+  // });
 }
 
 // We recommend this pattern to be able to use async/await everywhere

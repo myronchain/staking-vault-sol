@@ -25,8 +25,11 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
     StakeData private svData;
 
     /** 构造函数 */
-    constructor(address counterAddress) {
-        svData = StakeData(counterAddress);
+    constructor(address _stakeDataAddress) {
+        svData = StakeData(_stakeDataAddress);
+    }
+
+    receive() external payable {
     }
 
     // 质押、提取本金、提取收益时更新相关数值
@@ -34,13 +37,12 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         require(_account != address(0), "_account must not be zero address");
         require(_type > 0, "_type must > 0");
         require(_amount > 0, "amount must > 0");
-        // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取推荐收益
+        // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取邀请收益
         StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(_account);
 
         // RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
             // 质押
-
         } else if (_type == 2) {
             // 提取本金
             require(
@@ -49,9 +51,9 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
             );
             userInfo.stakeAmount -= _amount;
             for (uint256 i = 0; i < userInfo.stakeRecordSize; ++i) {
-                StakeData.StakeRecord memory _addressStakeRecord = svData.getAddressStakeRecord(_account,i);
+                StakeData.StakeRecord memory _addressStakeRecord = svData.getAddressStakeRecord(_account, i);
                 uint256 _balance = _addressStakeRecord.stakeAmount - _addressStakeRecord.manageFee;
-                if (_balance <= 0){
+                if (_balance <= 0) {
                     continue;
                 }
                 if (_balance <= _amount) {
@@ -63,7 +65,7 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
                     _addressStakeRecord.stakeAmount -= _amount;
                     _amount = 0;
                 }
-                svData.setAddressStakeRecord(_account,i,_addressStakeRecord) ;
+                svData.setAddressStakeRecord(_account, i, _addressStakeRecord);
             }
 
             svData.setTotalStaked(svData.getTotalStaked() - _amount);
@@ -79,7 +81,7 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
             // 提取合约内代币
             svData.setTotalStaked(svData.getTotalStaked() - _amount);
         } else if (_type == 5) {
-            // 提取推荐收益
+            // 提取邀请收益
             require(
                 userInfo.referrerRewardsAmount - userInfo.referrerRewardsWithdrawAmount > _amount,
                 "your balance is lower than referrer rewards amount"
@@ -88,20 +90,14 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         } else {
             require(false, "_type error");
         }
-        svData.setAddressUserInfo(_account,userInfo);
+        svData.setAddressUserInfo(_account, userInfo);
         _;
-    }
-
-    function pause() public onlyOwner {
-        _pause();
-    }
-
-    function unpause() public onlyOwner {
-        _unpause();
     }
 
     // _transfer 用于主代币转出、Token转入转出
     function _transfer(IERC20 token, address _from, address _to, uint256 _value) private {
+        console.log("_to", _to);
+        console.log("_value", _value);
         require(
             _from != address(0) || _from != address(this),
             "from address can't be 0 when from is not this contract"
@@ -118,13 +114,25 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         }
     }
 
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    // 查看合约主代币金额
+    function getMainTokenBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
 
     /** 提取相关 */
-    // ✅ 提取本金
+    // 提取本金
     function withdrawStake(
         uint256 _amount
     ) public nonReentrant _updateRecord(msg.sender, 2, _amount) {
-        _transfer(svData.getStakingToken(), address(this), msg.sender, _amount);
+        _transfer(svData.getStakingToken(), svData.getStakingBank(), msg.sender, _amount);
         emit WithdrawStake(msg.sender, _amount);
     }
 
@@ -134,39 +142,53 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         emit RewardStakeClaimed(msg.sender, _amount);
     }
 
-    // 提取奖励收益
+    // 提取邀请奖励收益
     function claimReferrerReward(uint256 _amount) public nonReentrant _updateRecord(msg.sender, 5, _amount) {
         _transfer(svData.getRewardsToken(), svData.getStakingBank(), msg.sender, _amount);
         emit RewardReferrerClaimed(msg.sender, _amount);
     }
 
-    // 提取本金+收益
-    function claimAllReward(address _account) public nonReentrant  {
+    // 提取本金+质押收益+邀请奖励
+    function claimAllReward(address _account) public nonReentrant {
         // 提取本金
         uint256 _amount1 = svData.getAddressUserInfo(_account).stakeAmount - svData.getAddressUserInfo(_account).manageFeeAmount;
-        if (_amount1 > 0){
-            _updateRecordHelper(2,_amount1);
+        if (_amount1 > 0) {
+            _updateRecordHelper(2, _amount1);
             _transfer(svData.getStakingToken(), svData.getStakingBank(), msg.sender, _amount1);
             emit WithdrawStake(msg.sender, _amount1);
         }
         // 提取收益奖励
         uint256 _amount2 = svData.getAddressUserInfo(_account).stakeRewardsAmount - svData.getAddressUserInfo(_account).stakeRewardsWithdrawAmount;
-        if (_amount2 > 0){
-            _updateRecordHelper(3,_amount2);
+        if (_amount2 > 0) {
+            _updateRecordHelper(3, _amount2);
             _transfer(svData.getRewardsToken(), svData.getStakingBank(), msg.sender, _amount2);
             emit RewardStakeClaimed(msg.sender, _amount2);
         }
-        // 提取推荐奖励
+        // 提取邀请奖励
         uint256 _amount3 = svData.getAddressUserInfo(_account).referrerRewardsAmount - svData.getAddressUserInfo(_account).referrerRewardsWithdrawAmount;
-        if (_amount3 > 0){
-            _updateRecordHelper(5,_amount3);
+        if (_amount3 > 0) {
+            _updateRecordHelper(5, _amount3);
             _transfer(svData.getRewardsToken(), svData.getStakingBank(), msg.sender, _amount3);
             emit RewardReferrerClaimed(msg.sender, _amount3);
         }
     }
 
+    // 将所有人的邀请奖励费用发送给给对应的邀请人
+    function sendAllReferrerRewards() public onlyOwner {
+        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
+            address _account = svData.getUserStateRecordKeys(i);
+            // 提取邀请奖励
+            uint256 _amount = svData.getAddressUserInfo(_account).referrerRewardsAmount - svData.getAddressUserInfo(_account).referrerRewardsWithdrawAmount;
+            if (_amount > 0) {
+                _updateRecordHelper(5, _amount);
+                _transfer(svData.getRewardsToken(), svData.getStakingBank(), svData.getUserReferrer(_account), _amount);
+                emit RewardReferrerClaimed(msg.sender, _amount);
+            }
+        }
+    }
+
     // _updateRecord辅助函数
-    function _updateRecordHelper(uint256 _amount, uint256 _type) _updateRecord(msg.sender, _type, _amount) private  {    }
+    function _updateRecordHelper(uint256 _amount, uint256 _type) _updateRecord(msg.sender, _type, _amount) private {}
 
     // Owner提取代币
     function withdrawOwner(

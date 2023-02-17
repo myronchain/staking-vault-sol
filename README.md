@@ -27,7 +27,11 @@ Staking合约
 
 ## 合约说明
 
-StakingVault：质押合约
+1. ERC20Mock: ERC20测试使用 
+2. StakeData: 质押数据存储合约 
+3. Withdraw: 提取入口，资金汇集合约，及时提取其中的资金 
+4. StakeEntry: 质押入口，质押的钱会被转移到Withdraw合约，用于被Owner提取 
+5. Recommend: 邀请机制合约
 
 ## 合约接口(事件)
 
@@ -47,7 +51,7 @@ StakingVault：质押合约
 
 #### 质押相关
 
-- 质押代币
+- ✅质押代币
   - 函数名：stake
   - 参数：_amount
 
@@ -63,7 +67,7 @@ StakingVault：质押合约
   - 函数名：setStakingBank
   - 参数：_stakingBank
 
-- ✅ 获取合约的质押总额
+- ✅获取合约的质押总额
   - 函数名：totalStaked
   - 参数：空
 
@@ -76,7 +80,7 @@ StakingVault：质押合约
   - 参数：startTime、endTime
 
 - ✅ 获取指定人的质押总额
-  - 函数名：stakedOf
+  - 函数名：getStakeAmount
   - 参数：_account
 
 
@@ -97,11 +101,14 @@ StakingVault：质押合约
 - 提取代币给Owner
   - 函数名：withdrawOwner
   - 参数：_amount
-- 计算收益相关数值(定时调用)
+- ✅计算收益相关数值(定时调用)
   - 函数名：calculateReward
   - 参数：无
-- 更新管理费用，然后将邀请奖励费用transfer给推荐人(定时调用)
+- ✅更新管理费用(定时调用)
   - 函数名：calculateManageFee
+  - 参数：无
+- 将所有邀请奖励费用转给对应推荐人(定时调用)
+  - 函数名：sendAllReferrerRewards
   - 参数：无
 - 获取指定人的收益历史总额
   - 函数名：getRewardCount
@@ -168,7 +175,25 @@ npx hardhat --network tron run scripts/deploy.js
 
 ## 合约地址
 
-1. BSC测试网：TODO
+### 主币质押
+
+1. BSC测试网：
+   - StakeData: 0x1669078226C81611F8Eb0164448E3553886d71f8
+   - Withdraw: 0x9327D03c598D0E58B9cC3aA09aE1c896A2e39154
+   - StakeEntry: 0x05A2BfA8b4FB9754283e9C136727473fD91D9f66
+   - Recommend: 0xa97CE3A80af56175052362FA2335D520c4D45dc8
+2. BSC主网：
+3. TRON测试网：
+4. TRON主网：
+
+### Token质押
+
+1. BSC测试网：
+   - ERC20测试: 0x72042D9AD9a32a889f0130A1476393eC0234b1b4
+   - StakeData:
+   - Withdraw:
+   - StakeEntry:
+   - Recommend:
 2. BSC主网：
 3. TRON测试网：
 4. TRON主网：
