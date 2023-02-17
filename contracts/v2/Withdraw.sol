@@ -8,12 +8,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "hardhat/console.sol";
-import "./stake_data.sol";
+import "./StakeData.sol";
 
 /**
 * 质押计算合约，质押代币存储合约
 */
-contract StakingVaultWithdraw is Ownable, Pausable, ReentrancyGuard {
+contract Withdraw is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     event Staked(address _from, uint256 _amount);
@@ -22,11 +22,11 @@ contract StakingVaultWithdraw is Ownable, Pausable, ReentrancyGuard {
     event RewardStakeClaimed(address _from, uint256 _amount);
     event RewardReferrerClaimed(address _from, uint256 _amount);
 
-    StakingVaultData private svData;
+    StakeData private svData;
 
     /** 构造函数 */
     constructor(address counterAddress) {
-        svData = StakingVaultData(counterAddress);
+        svData = StakeData(counterAddress);
     }
 
     // 质押、提取本金、提取收益时更新相关数值
@@ -35,27 +35,12 @@ contract StakingVaultWithdraw is Ownable, Pausable, ReentrancyGuard {
         require(_type > 0, "_type must > 0");
         require(_amount > 0, "amount must > 0");
         // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取推荐收益
-        StakingVaultData.UserInfo memory userInfo = svData.getAddressUserInfo(_account);
+        StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(_account);
 
         // RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
             // 质押
-            svData.setTotalStaked(svData.getTotalStaked()+ _amount);
-            if(!userInfo.exsits){
-                svData.pushUserStateRecordKeys(_account);
-                userInfo.exsits = true;
-            }
 
-            // address => StakeRecordId => StakeRecord
-            StakingVaultData.StakeRecord memory _stakeRecord ;
-            _stakeRecord.stakeAmount = _amount;
-            _stakeRecord.rewardsLastUpdatedTime = block.timestamp;
-            _stakeRecord.manageFee = 0;
-            _stakeRecord.stakeTime = block.timestamp;
-            _stakeRecord.rewardsRecordSize = 0;
-            svData.setAddressStakeRecord(_account,userInfo.stakeRecordSize,_stakeRecord);
-            userInfo.stakeRecordSize ++;
-            userInfo.stakeAmount += _amount;
         } else if (_type == 2) {
             // 提取本金
             require(
@@ -64,7 +49,7 @@ contract StakingVaultWithdraw is Ownable, Pausable, ReentrancyGuard {
             );
             userInfo.stakeAmount -= _amount;
             for (uint256 i = 0; i < userInfo.stakeRecordSize; ++i) {
-                StakingVaultData.StakeRecord memory _addressStakeRecord = svData.getAddressStakeRecord(_account,i);
+                StakeData.StakeRecord memory _addressStakeRecord = svData.getAddressStakeRecord(_account,i);
                 uint256 _balance = _addressStakeRecord.stakeAmount - _addressStakeRecord.manageFee;
                 if (_balance <= 0){
                     continue;

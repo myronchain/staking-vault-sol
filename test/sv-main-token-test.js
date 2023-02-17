@@ -1,20 +1,27 @@
 // const { describe, beforeEach, it } = require('mocha');
 const {expect} = require("chai");
-const {ethers, upgrades} = require("hardhat");
+const {ethers, upgrades, web3} = require("hardhat");
+const {address} = require("hardhat/internal/core/config/config-validation");
+const {getSigner} = require("@nomiclabs/hardhat-ethers/internal/helpers");
+
+const ETH = (value) => ethers.utils.parseEther(value);
 
 describe("StakingVault Main Token Test", function () {
   let admin;
-  let maintainer;
-  let minter;
+  let owner;
   // eslint-disable-next-line no-unused-vars
-  let addr1;
+  let stakeUser1;
   // eslint-disable-next-line no-unused-vars
-  let addr2;
+  let stakeUser2;
   // eslint-disable-next-line no-unused-vars
-  let addrs;
+  let stakeUser3;
 
-  let StakingVaultFactory;
-  let svMainToken;
+  let StakeDataFactory;
+  let WithdrawFactory;
+  let StakeEntryFactory;
+  let stakeData;
+  let withdraw;
+  let stakeEntry;
   let nftV2;
 
   // constants
@@ -29,34 +36,53 @@ describe("StakingVault Main Token Test", function () {
   // `beforeEach` will run before each test, re-deploying the contract every
   // time. It receives a callback, which can be async.
   beforeEach(async function () {
-    [admin, maintainer, minter, addr1, addr2, ...addrs] = await ethers.getSigners();
+    [admin, owner, stakeUser1, stakeUser2, stakeUser3] = await ethers.getSigners();
 
     // Get the ContractFactory
-    StakingVaultFactory = await ethers.getContractFactory("StakingVault");
-    DEPLOYED_ADDRESS = (await StakingVaultFactory.signer.getAddress()).toLowerCase();
-    svMainToken = await StakingVaultFactory.deploy(true, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARD_RATE);
-    await svMainToken.deployed();
-    console.log("Deployed success. Contract address: " + svMainToken.address + ", Deploy Address: "+ DEPLOYED_ADDRESS)
-    // upgrades contract
-    // StakingVaultV2Factory = await ethers.getContractFactory("StakingVaultV2");
-    // svMainToken = await upgrades.deployProxy(StakingVaultFactory,
-    //   [true, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARD_RATE],
-    //   {initializer: "initialize", kind: 'uups'})
-    // await svMainToken.deployed();
+    StakeDataFactory = await ethers.getContractFactory("StakeData");
+    DEPLOYED_ADDRESS = (await StakeDataFactory.signer.getAddress()).toLowerCase();
+    stakeData = await StakeDataFactory.deploy(true, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARD_RATE);
+    await stakeData.deployed();
+    console.log("Deployed success. StakeData Contract address: " + stakeData.address + ", Deploy Address: " + DEPLOYED_ADDRESS)
+
+    WithdrawFactory = await ethers.getContractFactory("Withdraw");
+    DEPLOYED_ADDRESS = (await WithdrawFactory.signer.getAddress()).toLowerCase();
+    withdraw = await WithdrawFactory.deploy(stakeData.address);
+    await withdraw.deployed();
+    console.log("Deployed success. Withdraw Contract address: " + withdraw.address + ", Deploy Address: " + DEPLOYED_ADDRESS)
+
+    StakeEntryFactory = await ethers.getContractFactory("StakeEntry");
+    DEPLOYED_ADDRESS = (await StakeEntryFactory.signer.getAddress()).toLowerCase();
+    stakeEntry = await WithdrawFactory.deploy(stakeData.address);
+    await stakeEntry.deployed();
+    console.log("Deployed success. StakeEntry Contract address: " + withdraw.address + ", Deploy Address: " + DEPLOYED_ADDRESS)
+    // TODO 添加调用权限
   });
 
-  describe("Deployment", async function () {
+  describe("TransferOwnership", async function () {
     it("Should set the right owner", async function () {
-      const svOwner = await svMainToken.owner();
-      expect(svOwner.toLowerCase()).to.equal(DEPLOYED_ADDRESS);
+      await stakeData.transferOwnership(owner.address.toLowerCase());
+      const svOwner = await stakeData.owner();
+      expect(svOwner.toLowerCase()).to.equal(owner.address.toLowerCase());
     });
   });
 
   describe("Stake", function () {
     it("Should stake correctly", async function () {
-      const tx = await svMainToken.mainTokenStake();
-      tx.values(1);
-      await tx.wait();
+      let stakeUser1Balance = (await web3.eth.getBalance(stakeUser1.address)).toString()
+      console.log("> " + "StakeUser1Balance before staking: " + stakeUser1Balance);
+
+      await stakeUser1.sendTransaction({
+        to: stakeEntry.address,
+        value: ETH("1"), // Sends exactly 1.0 ether
+      }, function (err, hash) {
+        console.log("> "+ "stake tx hash: "+ hash)
+      });
+      stakeUser1Balance = (await web3.eth.getBalance(stakeUser1.address)).toString()
+      console.log("> " + "StakeUser1Balance after staking: " + stakeUser1Balance);
+
+      const amount = (await web3.eth.getBalance(stakeData.address)).toString()
+      console.log("> " + "Amount: " + amount);
     });
   });
   //   it("Should mint with correct token ID", async function () {

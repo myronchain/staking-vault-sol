@@ -8,12 +8,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "hardhat/console.sol";
-import "./stake_data.sol";
+import "./StakeData.sol";
 
 /**
 * 质押计算合约，质押代币存储合约
 */
-contract StakingVaultCalc is Ownable, Pausable, ReentrancyGuard {
+contract Recommend is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     event Staked(address _from, uint256 _amount);
@@ -22,11 +22,11 @@ contract StakingVaultCalc is Ownable, Pausable, ReentrancyGuard {
     event RewardStakeClaimed(address _from, uint256 _amount);
     event RewardReferrerClaimed(address _from, uint256 _amount);
 
-    StakingVaultData private svData;
+    StakeData private svData;
 
     /** 构造函数 */
     constructor(address counterAddress) {
-        svData = StakingVaultData(counterAddress);
+        svData = StakeData(counterAddress);
     }
 
     function pause() public onlyOwner {

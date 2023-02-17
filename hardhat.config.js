@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+require("@nomiclabs/hardhat-web3");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-solhint");
@@ -13,7 +14,7 @@ const { task } = require("hardhat/config");
 
 // const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const withOptimizations = true;
-const defaultNetwork = "mumbai"; // "hardhat" for tests
+const defaultNetwork = "hardhat"; // "hardhat" for tests
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -46,7 +47,6 @@ module.exports = {
     hardhat: {
       blockGasLimit: 10000000,
       allowUnlimitedContractSize: !withOptimizations,
-      timeout: 100000000,
     },
     mumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/PZd297vs-VHFPPcF4mRaayWFRgdHKn6I`,

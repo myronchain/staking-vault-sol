@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /**
 * 质押数据存储合约
 */
-contract StakingVaultData is Ownable, Pausable {
+contract StakeData is Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     // 一次质押的信息
