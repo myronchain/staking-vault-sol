@@ -40,7 +40,6 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
         // _type: 1-质押，2-提取本金，3-提取质押收益，4-Owner提取合约内Token，5-提取邀请收益
         StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(_account);
 
-        // RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
             // 质押
         } else if (_type == 2) {
@@ -188,7 +187,7 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
     }
 
     // _updateRecord辅助函数
-    function _updateRecordHelper(uint256 _amount, uint256 _type) _updateRecord(msg.sender, _type, _amount) private {}
+    function _updateRecordHelper(uint256 _type, uint256 _amount) _updateRecord(msg.sender, _type, _amount) private {}
 
     // Owner提取代币
     function withdrawOwner(
