@@ -51,8 +51,12 @@ Staking合约
 
 #### 质押相关
 
+- ✅质押主代币
+  - 函数名：mainTokenStake
+  - 参数：注意value不能为0
+
 - ✅质押代币
-  - 函数名：stake
+  - 函数名：tokenStake
   - 参数：_amount
 
 - 设置质押时间
@@ -87,7 +91,7 @@ Staking合约
 #### 提取相关
 
 - 提取本金
-  - 函数名：withdraw
+  - 函数名：withdrawStake
   - 参数：_amount
 - 提取质押收益
   - 函数名：claimStakeReward
@@ -131,9 +135,6 @@ Staking合约
 - 查看邀请人
   - 函数：getReferrer
   - 参数：无
-
-
-
 
 ## 安装环境
 ```shell
