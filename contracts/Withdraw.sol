@@ -16,7 +16,6 @@ import "./StakeData.sol";
 contract Withdraw is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    event Staked(address _from, uint256 _amount);
     event WithdrawStake(address _from, uint256 _amount);
     event WithdrawOwner(address _from, uint256 _amount);
     event RewardStakeClaimed(address _from, uint256 _amount);
@@ -172,8 +171,8 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
 
     // 将所有人的邀请奖励费用发送给给对应的邀请人
     function sendAllReferrerRewards() public onlyOwner {
-        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
-            address _account = svData.getUserStateRecordKeys(i);
+        for (uint256 i = 0; i < svData.getStateRecordAddressKeysSize(); ++i) {
+            address _account = svData.getStateRecordAddressKeys(i);
             // 提取邀请奖励
             uint256 _amount = svData.getAddressUserInfo(_account).referrerRewardsAmount - svData.getAddressUserInfo(_account).referrerRewardsWithdrawAmount;
             if (_amount > 0) {

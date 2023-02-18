@@ -17,10 +17,6 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     event Staked(address _from, uint256 _amount);
-    event Withdraw(address _from, uint256 _amount);
-    event WithdrawOwner(address _from, uint256 _amount);
-    event RewardStakeClaimed(address _from, uint256 _amount);
-    event RewardReferrerClaimed(address _from, uint256 _amount);
 
     StakeData private svData;
     address private withdrawContractAddress;
@@ -78,16 +74,16 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
     function getStakeNum(uint256 startTime, uint256 endTime) public view returns (uint256, uint256) {
         uint256 count = 0;
         uint256 sum = 0;
-        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
-            uint256 _stakeRecordsSize = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i)).stakeRecordSize;
+        for (uint256 i = 0; i < svData.getStateRecordAddressKeysSize(); ++i) {
+            uint256 _stakeRecordsSize = svData.getAddressUserInfo(svData.getStateRecordAddressKeys(i)).stakeRecordSize;
             bool addedCount = false;
             for (uint256 j = 0; j < _stakeRecordsSize; ++j) {
-                if (svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j).stakeTime >= startTime && svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j).stakeTime <= endTime) {
+                if (svData.getAddressStakeRecord(svData.getStateRecordAddressKeys(i), j).stakeTime >= startTime && svData.getAddressStakeRecord(svData.getStateRecordAddressKeys(i), j).stakeTime <= endTime) {
                     if (!addedCount) {
                         count ++;
                         addedCount = true;
                     }
-                    sum += svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j).stakeAmount;
+                    sum += svData.getAddressStakeRecord(svData.getStateRecordAddressKeys(i), j).stakeAmount;
                 }
             }
         }
@@ -117,7 +113,7 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
             // 质押
             svData.setTotalStaked(svData.getTotalStaked() + _amount);
             if (!userInfo.exsits) {
-                svData.pushUserStateRecordKeys(_account);
+                svData.pushStateRecordAddressKeys(_account);
                 userInfo.exsits = true;
             }
             // address => StakeRecordId => StakeRecord
@@ -147,13 +143,13 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
 
     // 计算更新收益，接受外部调用
     function calculateReward() public {
-        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
+        for (uint256 i = 0; i < svData.getStateRecordAddressKeysSize(); ++i) {
             // 增加的用户质押奖励总额
             uint256 _addStakeRewardsAmount = 0;
-            StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i));
+            StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getStateRecordAddressKeys(i));
             for (uint256 j = 0; j < userInfo.stakeRecordSize; ++j) {
                 // 更新质押奖励
-                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j);
+                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getStateRecordAddressKeys(i), j);
                 if (_stakeRecords.stakeAmount == 0) {
                     continue;
                 }
@@ -165,47 +161,47 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
                         _stakeRecords.rewardsLastUpdatedTime = _stakeRecords.rewardsLastUpdatedTime + svData.getStakeRewardsStartTime();
                     }
                     uint256 _rewardAmount = _stakeRecords.stakeAmount * svData.getRewardRate() / 1e8;
-                    StakeData.RewardsRecord memory _rewardsRecord = svData.getStakeRecordRewardsRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords.rewardsRecordSize);
+                    StakeData.RewardsRecord memory _rewardsRecord = svData.getStakeRecordRewardsRecord(svData.getStateRecordAddressKeys(i), j, _stakeRecords.rewardsRecordSize);
                     _rewardsRecord.stakeAmount = _stakeRecords.stakeAmount;
                     _rewardsRecord.rewardsAmount = _rewardAmount;
                     _rewardsRecord.lastCalcTime = block.timestamp;
                     _addStakeRewardsAmount += _rewardAmount;
                     _stakeRecords.rewardsRecordSize++;
-                    svData.setStakeRecordRewardsRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords.rewardsRecordSize, _rewardsRecord);
+                    svData.setStakeRecordRewardsRecord(svData.getStateRecordAddressKeys(i), j, _stakeRecords.rewardsRecordSize, _rewardsRecord);
                 }
-                svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
+                svData.setAddressStakeRecord(svData.getStateRecordAddressKeys(i), j, _stakeRecords);
             }
             userInfo.stakeRewardsAmount += _addStakeRewardsAmount;
-            svData.setAddressUserInfo(svData.getUserStateRecordKeys(i), userInfo);
+            svData.setAddressUserInfo(svData.getStateRecordAddressKeys(i), userInfo);
         }
     }
 
     // 更新管理费用
     function calculateManageFee() public {
-        for (uint256 i = 0; i < svData.getUserStateRecordKeysSize(); ++i) {
+        for (uint256 i = 0; i < svData.getStateRecordAddressKeysSize(); ++i) {
             // 增加的用户管理费总额
-            uint256 _addManangeAmount = 0;
+            uint256 _addManageAmount = 0;
             // 增加的用户邀请奖励总额
             uint256 _addReferrerRewardsAmount = 0;
-            StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i));
+            StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getStateRecordAddressKeys(i));
             for (uint256 j = 0; j < userInfo.stakeRecordSize; ++j) {
-                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j);
+                StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getStateRecordAddressKeys(i), j);
                 // 更新质押管理费
                 if (_stakeRecords.manageFee == 0 && block.timestamp >= svData.getManageFeeStartTime() + _stakeRecords.stakeTime) {
                     _stakeRecords.manageFee = svData.getManageFeeRate() * _stakeRecords.stakeAmount / 1e8;
-                    _addManangeAmount += _stakeRecords.manageFee;
+                    _addManageAmount += _stakeRecords.manageFee;
                     // 更新邀请奖励
-                    _addReferrerRewardsAmount += svData.getRewardRate() * _stakeRecords.stakeAmount / 1e8;
+                    _addReferrerRewardsAmount += svData.getReferrerRate() * _stakeRecords.stakeAmount / 1e8;
                 }
-                svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
+                svData.setAddressStakeRecord(svData.getStateRecordAddressKeys(i), j, _stakeRecords);
             }
-            userInfo.manageFeeAmount += _addManangeAmount;
+            userInfo.manageFeeAmount += _addManageAmount;
             // 更新邀请人的邀请奖励
-            StakeData.UserInfo memory _referrerUserInfo = svData.getAddressUserInfo(svData.getUserReferrer(svData.getUserStateRecordKeys(i)));
+            StakeData.UserInfo memory _referrerUserInfo = svData.getAddressUserInfo(svData.getUserReferrer(svData.getStateRecordAddressKeys(i)));
             _referrerUserInfo.referrerRewardsAmount += _addReferrerRewardsAmount;
-            svData.setAddressUserInfo(svData.getUserReferrer(svData.getUserStateRecordKeys(i)), _referrerUserInfo);
+            svData.setAddressUserInfo(svData.getUserReferrer(svData.getStateRecordAddressKeys(i)), _referrerUserInfo);
             // 更新遍历的此用户结果
-            svData.setAddressUserInfo(svData.getUserStateRecordKeys(i), userInfo);
+            svData.setAddressUserInfo(svData.getStateRecordAddressKeys(i), userInfo);
         }
     }
 

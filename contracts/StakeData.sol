@@ -56,7 +56,7 @@ contract StakeData is Ownable, Pausable {
         uint256 stakeRecordSize;
     }
 
-    // Whether it is a main token staking(e.g. BNB)
+    // 是否是主代币
     bool private isMainToken;
 
     address private stakingBank;
@@ -70,7 +70,7 @@ contract StakeData is Ownable, Pausable {
     uint256 private manageFeeRate;
 
     // 邀请收益 1e8
-    uint256 private referrRate;
+    uint256 private referrerRate;
 
     // 质押总量
     uint256 private totalStaked;
@@ -81,16 +81,17 @@ contract StakeData is Ownable, Pausable {
     uint256 private manageFeeStartTime;
 
 
-    // TODO 所有质押记录 address => StakeRecordId => StakeRecord  关联address和StakeRecord public
+    // 所有质押记录 address => StakeRecordId => StakeRecord  关联address和StakeRecord public
     mapping(address => mapping(uint256 => StakeRecord)) private addressStakeRecord;
 
-    // TODO 质押奖励历史记录 address => StakeRecordId => RewardsRecordId => RewardsRecord 关联StakeRecord和RewardsRecord
+    // 质押奖励历史记录 address => StakeRecordId => RewardsRecordId => RewardsRecord 关联StakeRecord和RewardsRecord
     mapping(address => mapping(uint256 => mapping(uint256 => RewardsRecord))) private stakeRecordRewardsRecord;
 
-    // Mapping of staked record
+    // 用户地址和用户信息的映射关系
     mapping(address => UserInfo) private addressUserInfo;
 
-    address[] private userStateRecordKeys;
+    // 保存所有质押过的用户地址
+    address[] private stateRecordAddressKeys;
 
     // Mapping of the referrer(value) of user(key)
     mapping(address => address) private userReferrer;
@@ -157,8 +158,8 @@ contract StakeData is Ownable, Pausable {
         return stakingBank;
     }
 
-    function setRewardsToken(IERC20 _rewardsToken) public onlyOwner {
-        rewardsToken = _rewardsToken;
+    function setRewardsToken(address _rewardsToken) public onlyOwner {
+        rewardsToken = IERC20(_rewardsToken);
     }
 
     function getRewardsToken() view public _callGet returns (IERC20) {
@@ -192,13 +193,13 @@ contract StakeData is Ownable, Pausable {
         return manageFeeRate;
     }
 
-    function setReferrRate(uint256 _referrRate) public _callSet {
-        require(_referrRate != 0, "referr rate cannot be 0");
-        referrRate = _referrRate;
+    function setReferrerRate(uint256 _referrerRate) public _callSet {
+        require(_referrerRate != 0, "referrer rate cannot be 0");
+        referrerRate = _referrerRate;
     }
 
-    function getReferrRate() view public _callGet returns (uint256) {
-        return referrRate;
+    function getReferrerRate() view public _callGet returns (uint256) {
+        return referrerRate;
     }
 
     function setTotalStaked(uint256 _totalStaked) public _callSet {
@@ -252,18 +253,17 @@ contract StakeData is Ownable, Pausable {
         addressUserInfo[_account] = _userInfo;
     }
 
-    function getUserStateRecordKeys(uint256 _index) view public _callGet returns (address){
-        return userStateRecordKeys[_index];
+    function getStateRecordAddressKeys(uint256 _index) view public _callGet returns (address){
+        return stateRecordAddressKeys[_index];
     }
 
-    function getUserStateRecordKeysSize() view public _callGet returns (uint256){
-        return userStateRecordKeys.length;
+    function getStateRecordAddressKeysSize() view public _callGet returns (uint256){
+        return stateRecordAddressKeys.length;
     }
 
-    function pushUserStateRecordKeys(address _account) public _callSet {
-        userStateRecordKeys.push(_account);
+    function pushStateRecordAddressKeys(address _account) public _callSet {
+        stateRecordAddressKeys.push(_account);
     }
-
 
     function getUserReferrer(address _user) view public _callGet returns (address){
         return userReferrer[_user];
@@ -272,7 +272,6 @@ contract StakeData is Ownable, Pausable {
     function setUserReferrer(address _user, address _referrer) public _callSet {
         userReferrer[_user] = _referrer;
     }
-
 
     function getReferrerUsers(address _referrer) view public _callGet returns (address[] memory){
         return referrerUsers[_referrer];

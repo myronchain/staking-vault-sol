@@ -1,35 +1,35 @@
 # Staking Vault Solidity
 
-Staking合约
+质押合约
 
 ## 需求
 
-> 当产生提前赎回行为：则按以下逻辑说明处理 注⚠️以下说明用字母N代替 
+> 当产生提前赎回行为：
 >
 > N代表 = 第一笔金额及质押的时间
 >
 > N+1代表 = 第二笔金额及质押的时间
 >
-> N+2代表 = 第三笔金额及质押的时间 以此类推！！！ 
+> N+2代表 = 第三笔金额及质押的时间
 
 1. 质押链和币种
    - BSC：BNB、Busd
    - TRON：tRX、usdt
 2. 质押时间：30天
-3. 30天利率：60% （暂时写为静态）
-4. 质押逻辑：需记录每次的质押金额及质押时间 yyyy-MM-dd-HH-mm
+3. 30天利率：60%
+4. 质押逻辑：需记录每次的质押金额及质押时间(时间戳方式)
    - 【提前赎回的行为】=【总质押金额】—【赎回金额】
-   - 【赎回金额扣除】= 优先扣除最早一笔的（即N）；若赎回金额大于N，则从N+1扣除，以此类推）（注：如果赎回金额>总投入金额，则赎回失败！）
-   - 【剩余金额的计算逻辑】=N\*质押时间\*利率 + N+1\*质押时间\*利率......（以此类推）
+   - 【赎回金额扣除】= 优先扣除最早一笔的（即N）；若赎回金额大于N，则从N+1扣除，以此类推）（注：如果赎回金额>总投入金额，则赎回失败）
+   - 【剩余金额的计算逻辑】=N\*质押时间(每30天更新一次收益)\*利率 + N+1\*质押时间\*利率......（以此类推）
      - eg：A用户2.9日14点质押某币种100刀；在2.10日12点质押相同币种200刀；累计共300刀，那么如果A用户在2月14日提取了80刀（则按业务逻辑是只返回本金，没有利润），则剩下220刀，这220刀将分开按“质押时间和利率进行计算”（即为：2.9日剩下的20刀计算+2.10日剩下的200刀计算=最后到期时间的利润及本金） 
 
-5. 考虑裂变的问题：所以我们有【邀请业务】A用户邀请B用户，奖励机制：【A用户收取B用户所有质押总额2.5%】10.1 质押XXX时间（待定）后合约收取5%管理费（24h后给邀请者打2.5%邀奖励），若时间不足收取管理费，没有2.5%的邀请奖励
+5. 考虑裂变的问题：所以我们有【邀请业务】A用户邀请B用户。奖励机制：【A用户收取B用户所有质押总额2.5%】10.1 质押XXX时间（待定）后合约收取5%管理费（24h后给邀请者打2.5%邀奖励），若时间不足收取管理费，没有2.5%的邀请奖励
 
 ## 合约说明
 
 1. ERC20Mock: ERC20测试使用 
 2. StakeData: 质押数据存储合约 
-3. Withdraw: 提取入口，资金汇集合约，及时提取其中的资金 
+3. Withdraw: 提取入口，资金汇集合约，Owner应及时提取其中的资金 
 4. StakeEntry: 质押入口，质押的钱会被转移到Withdraw合约，用于被Owner提取 
 5. Recommend: 邀请机制合约
 
@@ -48,6 +48,111 @@ Staking合约
 ## 合约函数
 
 ### StakeData: 质押数据
+
+- 设置是否为主代币质押
+  - 函数名：setIsMainToken
+  - 参数：无
+- 获取是否为主代币质押
+  - 函数名：getIsMainToken
+  - 参数：无
+- 设置质押银行(提取的时候从此地址提取)
+  - 函数名：setStakingBank
+  - 参数：_stakingBank
+- 获取质押银行
+  - 函数名：getStakingBank
+  - 参数：无
+- 设置奖励的ERC20 Token地址
+  - 函数名：setRewardsToken
+  - 参数：_rewardsToken
+- 获取奖励的ERC20 Token地址
+  - 函数名：getRewardsToken
+  - 参数：无
+- 设置质押的ERC20 Token地址
+  - 函数名；setStakingToken
+  - 参数：_stakingToken
+- 获取质押ERC20 Token地址
+  - 函数名：getStakingToken
+  - 参数：无
+- 设置奖励系数(精度为8，例如5000000代表0.05，下同)
+  - 函数名：setRewardRate
+  - 参数：`_rewardRate`
+- 获取奖励系数
+  - 函数名：getRewardRate
+  - 参数：无
+- 设置管理费系数
+  - 函数名：setManageFeeRate
+  - 参数：`_manageFeeRate`
+- 获取管理费系数
+  - 函数名：getManageFeeRate
+  - 参数：无
+- 设置推荐奖励系数
+  - 函数名：setReferrerRate
+  - 参数：`_referrerRate`
+- 获取推荐奖励系数
+  - 函数名：getReferrerRate
+  - 参数：无
+- 设置质押总量
+  - 函数名：setTotalStaked
+  - 参数：`_totalStaked`
+- 获取质押总量
+  - 函数名：getTotalStaked
+  - 参数：无
+- 设置质押收益周期
+  - 函数名：setStakeRewardsStartTime
+  - 参数：`_stakeRewardsStartTime`
+- 获取质押收益周期
+  - 函数名：getStakeRewardsStartTime
+  - 参数：无
+- 设置管理费开始计算时间(单位: ms，下同)
+  - 函数名：setManageFeeStartTime
+  - 参数：`_manageFeeStartTime`
+- 获取管理费开始计算时间
+  - 函数名：getManageFeeStartTime
+  - 参数：无
+- 获取地址质押记录
+  - 函数名：getAddressStakeRecord
+  - 参数：`_account`、`_stakeRecordId`
+- 设置地址质押记录
+  - 函数名；setAddressStakeRecord
+  - 参数：`_account`、`_stakeRecordId`、`_stakeRecord`
+- 获取质押奖励记录
+  - 函数名：getStakeRecordRewardsRecord
+  - 参数：`_account`、` _stakeRecordId`、`_rewardsRecordId`
+- 设置质押奖励记录
+  - 函数名：setStakeRecordRewardsRecord
+  - 参数：`_account`、`_stakeRecordId`、`_rewardsRecordId`、`_rewardsRecord`
+- 获取用户信息
+  - 函数名：getAddressUserInfo
+  - 参数：_account
+- 设置用户信息
+  - 函数名：setAddressUserInfo
+  - 参数：`_account`、`_userInfo`
+- 获取质押的其中一个用户的地址
+  - 函数名：getUserStateRecordKeys
+  - 参数：_index
+- 获取质押的所有用户数量
+  - 函数名：getUserStateRecordKeysSize
+  - 参数：无
+- 添加质押的用户地址
+  - 函数名：pushUserStateRecordKeys
+  - 参数：_account
+- 获取用户推荐人信息
+  - 函数名；getUserReferrer
+  - 参数：_user
+- 设置用户推荐人信息
+  - 函数名：setUserReferrer
+  - 参数：`_user`、`_referrer`
+- 获取推荐人推荐的用户地址
+  - 函数名：getReferrerUsers
+  - 参数：_referrer
+- 添加推荐人推荐的用户地址
+  - 函数名：pushReferrerUsers
+  - 参数：`_referrer`、`_users`
+- 合约调用者控制
+  - 允许调用合约Get函数：addCallGetContract
+  - 允许调用合约Set函数：addCallSetContract
+  - 取消允许调用合约Get函数：deleteCallGetContract
+  - 取消调用合约Set函数：deleteCallSetContract
 
 
 ### StakeData: 质押相关

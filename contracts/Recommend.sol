@@ -16,11 +16,7 @@ import "./StakeData.sol";
 contract Recommend is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    event Staked(address _from, uint256 _amount);
-    event Withdraw(address _from, uint256 _amount);
-    event WithdrawOwner(address _from, uint256 _amount);
-    event RewardStakeClaimed(address _from, uint256 _amount);
-    event RewardReferrerClaimed(address _from, uint256 _amount);
+    event SetReferrer(address _user, address _referrer);
 
     StakeData private svData;
 
@@ -42,6 +38,8 @@ contract Recommend is Ownable, Pausable, ReentrancyGuard {
         require(svData.getUserReferrer(msg.sender) == address(0), "Already set referrer");
         svData.setUserReferrer(msg.sender, _referrer);
         svData.pushReferrerUsers(_referrer, msg.sender);
+
+        emit SetReferrer(msg.sender, _referrer);
     }
 
     function getReferrer() public view returns (address) {
