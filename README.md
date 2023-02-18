@@ -260,25 +260,22 @@ PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
 1. 在BSC测试网部署
 
 ```shell
-npx hardhat --network bsctest run scripts/deploy.js
+npm run deploy-bsctest
 ```
 
 2. 在BSC主网部署
 
 ```shell
-npx hardhat --network bsc run scripts/deploy.js
 ```
 
 3. 在TRON测试网部署
 
 ```shell
-npx hardhat --network trontest run scripts/deploy.js
 ```
 
 4. 在TRON主网部署
 
 ```shell
-npx hardhat --network tron run scripts/deploy.js
 ```
 
 ## 合约地址
@@ -286,10 +283,10 @@ npx hardhat --network tron run scripts/deploy.js
 ### 主币质押
 
 1. BSC测试网：
-   - StakeData: 0x1669078226C81611F8Eb0164448E3553886d71f8
-   - Withdraw: 0x9327D03c598D0E58B9cC3aA09aE1c896A2e39154
-   - StakeEntry: 0x05A2BfA8b4FB9754283e9C136727473fD91D9f66
-   - Recommend: 0xa97CE3A80af56175052362FA2335D520c4D45dc8
+   - StakeData: 0x43D98019dA9c36Cd5eEa7D3910F5f76B15b2Cc27
+   - Withdraw: 0xD93Bf4fF0c3B6EF45E2Bfa1D0B146C9b3285CAdE
+   - StakeEntry: 0x5CBC5AEcD2Cb1Ceab6a81754A5A6570d3bf2c813
+   - Recommend: 0xbB720d733634d22EBf19dC52E97dA71Ef83bD1E4
 2. BSC主网：
 3. TRON测试网：
 4. TRON主网：

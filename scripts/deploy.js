@@ -62,14 +62,14 @@ async function main() {
 
   // 添加调用权限
   console.log("SET LIMITS OF AUTHORITY")
-  stakeDataContract.addCallGetContract(withdrawContract.address);
-  stakeDataContract.addCallSetContract(withdrawContract.address);
-  stakeDataContract.addCallGetContract(stakeEntryContract.address);
-  stakeDataContract.addCallSetContract(stakeEntryContract.address);
-  stakeDataContract.addCallGetContract(recommendContract.address);
-  stakeDataContract.addCallSetContract(recommendContract.address);
+  await stakeDataContract.addCallGetContract(withdrawContract.address);
+  await stakeDataContract.addCallSetContract(withdrawContract.address);
+  await stakeDataContract.addCallGetContract(stakeEntryContract.address);
+  await stakeDataContract.addCallSetContract(stakeEntryContract.address);
+  await stakeDataContract.addCallGetContract(recommendContract.address);
+  await stakeDataContract.addCallSetContract(recommendContract.address);
   // 设置质押银行为提取合约，用于提取代币
-  stakeDataContract.setStakingBank(withdrawContract.address);
+  await stakeDataContract.setStakingBank(withdrawContract.address);
   console.log("SET LIMITS OF AUTHORITY SUCCESS\n")
 
   // verify the contracts
