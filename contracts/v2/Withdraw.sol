@@ -95,8 +95,6 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
 
     // _transfer 用于主代币转出、Token转入转出
     function _transfer(IERC20 token, address _from, address _to, uint256 _value) private {
-        console.log("_to", _to);
-        console.log("_value", _value);
         require(
             _from != address(0) || _from != address(this),
             "from address can't be 0 when from is not this contract"

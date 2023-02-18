@@ -63,20 +63,17 @@ contract StakeData is Ownable, Pausable {
     IERC20 private rewardsToken;
     IERC20 private stakingToken;
 
-    // Reward rate per second per token staked 万分之N
+    // 质押奖励收益 1e8
     uint256 private rewardRate;
 
-    // 管理费率 万分之N
+    // 管理费率 1e8
     uint256 private manageFeeRate;
 
-    // 邀请收益 万分之N
+    // 邀请收益 1e8
     uint256 private referrRate;
 
-    // Total amount of tokens staked
+    // 质押总量
     uint256 private totalStaked;
-
-    // The minimum staking period to start calculating the earnings
-    uint256 private stakingTime;
 
     // 质押收益开始计算时间
     uint256 private stakeRewardsStartTime;
@@ -206,21 +203,11 @@ contract StakeData is Ownable, Pausable {
 
     function setTotalStaked(uint256 _totalStaked) public _callSet {
         require(_totalStaked != 0, "totalStakedcannot be 0");
-        console.log("setTotalStaked: ", _totalStaked);
         totalStaked = _totalStaked;
     }
 
     function getTotalStaked() public view _callGet returns (uint256) {
         return totalStaked;
-    }
-
-    function setStakingTime(uint256 _stakingTime) public _callSet {
-        require(_stakingTime != 0, "staking time cannot be 0");
-        stakingTime = _stakingTime;
-    }
-
-    function getStakingTime() view public _callGet returns (uint256) {
-        return stakingTime;
     }
 
     function setStakeRewardsStartTime(uint256 _stakeRewardsStartTime) public onlyOwner {

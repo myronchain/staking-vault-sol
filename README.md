@@ -47,9 +47,10 @@ Staking合约
 
 ## 合约函数
 
-### StakingVault
+### StakeData: 质押数据
 
-#### 质押相关
+
+### StakeData: 质押相关
 
 - ✅质押主代币
   - 函数名：mainTokenStake
@@ -88,7 +89,7 @@ Staking合约
   - 参数：_account
 
 
-#### 提取相关
+### Withdraw: 提取相关
 
 - 提取本金
   - 函数名：withdrawStake
@@ -127,7 +128,7 @@ Staking合约
   - 函数名：getReferrerRewardsBalance
   - 参数：_account
 
-#### 推荐相关
+### Recommend: 推荐相关
 
 - 保存邀请人
   - 函数：setReferrer
@@ -135,6 +136,7 @@ Staking合约
 - 查看邀请人
   - 函数：getReferrer
   - 参数：无
+
 
 ## 安装环境
 ```shell

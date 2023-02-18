@@ -21,7 +21,7 @@ interface IStakeEntry {
     event RewardReferrerClaimed(address _from, uint256 _amount);
 
 
-    // 主代币转账
+    // 主代币质押
     function mainTokenStake() external payable;
 
     // Token质押

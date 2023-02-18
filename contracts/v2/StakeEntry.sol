@@ -42,16 +42,11 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
         require(_to != address(0), "to address can't be 0");
         require(_value != 0, "value can't be 0");
         if (svData.getIsMainToken()) {
-            console.log("main token transfer");
             // 主代币转出
             // Call returns a boolean value indicating success or failure.
             (bool sent,) = _to.call{value : _value}("");
             require(sent, "Failed to send Ether");
         } else {
-            console.log("token transfer");
-            console.log("token:", _token.totalSupply());
-            console.log("to:", _to);
-            console.log("value:", _value);
             _token.safeTransferFrom(_from, _to, _value);
         }
     }
@@ -119,7 +114,6 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
 
         // RewardsRecord[] memory _rewardsRecord;
         if (_type == 1) {
-            console.log("stake:", _amount);
             // 质押
             svData.setTotalStaked(svData.getTotalStaked() + _amount);
             if (!userInfo.exsits) {
@@ -164,7 +158,6 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
                     continue;
                 }
                 if (block.timestamp >= svData.getStakeRewardsStartTime() + _stakeRecords.rewardsLastUpdatedTime) {
-                    console.log("calc rewards");
                     // 支持很久没有刷新的特殊情况
                     if (_stakeRecords.rewardsLastUpdatedTime + svData.getStakeRewardsStartTime() > block.timestamp) {
                         _stakeRecords.rewardsLastUpdatedTime = block.timestamp;
@@ -183,7 +176,6 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
                 svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
             }
             userInfo.stakeRewardsAmount += _addStakeRewardsAmount;
-            console.log("userInfo", userInfo.stakeRewardsAmount);
             svData.setAddressUserInfo(svData.getUserStateRecordKeys(i), userInfo);
         }
     }
@@ -196,7 +188,6 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
             // 增加的用户邀请奖励总额
             uint256 _addReferrerRewardsAmount = 0;
             StakeData.UserInfo memory userInfo = svData.getAddressUserInfo(svData.getUserStateRecordKeys(i));
-            console.log("calculateManageFee");
             for (uint256 j = 0; j < userInfo.stakeRecordSize; ++j) {
                 StakeData.StakeRecord memory _stakeRecords = svData.getAddressStakeRecord(svData.getUserStateRecordKeys(i), j);
                 // 更新质押管理费
@@ -209,7 +200,6 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
                 svData.setAddressStakeRecord(svData.getUserStateRecordKeys(i), j, _stakeRecords);
             }
             userInfo.manageFeeAmount += _addManangeAmount;
-            console.log("userInfo.manageFeeAmount:", userInfo.manageFeeAmount);
             // 更新邀请人的邀请奖励
             StakeData.UserInfo memory _referrerUserInfo = svData.getAddressUserInfo(svData.getUserReferrer(svData.getUserStateRecordKeys(i)));
             _referrerUserInfo.referrerRewardsAmount += _addReferrerRewardsAmount;
