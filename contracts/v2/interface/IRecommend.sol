@@ -12,7 +12,7 @@ import "hardhat/console.sol";
 /**
 * 邀请人相关
 */
-interface Recommend {
+interface IRecommend {
 
     event Staked(address _from, uint256 _amount);
     event Withdraw(address _from, uint256 _amount);
@@ -26,6 +26,6 @@ interface Recommend {
 
     function setReferrer(address _referrer) external;
 
-    function getReferrer() external returns (address);
+    function getReferrer() external view returns (address);
 
 }

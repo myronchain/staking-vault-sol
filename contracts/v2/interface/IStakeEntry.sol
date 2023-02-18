@@ -12,7 +12,7 @@ import "hardhat/console.sol";
 /**
 * 质押计算合约，质押代币存储合约
 */
-interface StakeEntry {
+interface IStakeEntry {
 
     event Staked(address _from, uint256 _amount);
     event Withdraw(address _from, uint256 _amount);

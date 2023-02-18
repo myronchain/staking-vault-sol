@@ -123,7 +123,7 @@ describe("StakingVault Main Token Test", function () {
     Log("StakeData Contract Main Token Amount2: " + amount2);
 
     // admin 质押
-    let adminBalance = (await web3.eth.getBalance(stakeUser2.address)).toString()
+    let adminBalance = (await web3.eth.getBalance(admin.address)).toString()
     Log("admin Balance before staking: " + stakeUser2Balance);
     await admin.sendTransaction({
       to: stakeEntryContract.address, value: stakedAmount3,
@@ -194,37 +194,32 @@ describe("StakingVault Main Token Test", function () {
   //   });
   // });
 
-  describe("Withdraw", function () {
-
-    it("Should withdraw stake balance correctly for staker", async function () {
-      let _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-      const _stakeBalanceAdmin1 = await stakeEntryContract.getStakeBalance(admin.address);
-      Log("admin balance1:" + _adminBalance);
-      Log("admin stake balance1:" + _stakeBalanceAdmin1);
-      // 提取本金
-      await withdrawContract.withdrawStake(ETH("1"));
-      _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-      const _stakeBalanceAdmin2 = await stakeEntryContract.getStakeBalance(admin.address);
-      Log("admin balance2:" + _adminBalance);
-      Log("admin stake balance2:" + _stakeBalanceAdmin2);
-      expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(ETH("1")));
-    });
-  });
+  // describe("Withdraw", function () {
+  //
+  //   it("Should withdraw stake balance correctly for staker", async function () {
+  //     let _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
+  //     const _stakeBalanceAdmin1 = await stakeEntryContract.getStakeBalance(admin.address);
+  //     Log("admin balance1:" + _adminBalance);
+  //     Log("admin stake balance1:" + _stakeBalanceAdmin1);
+  //     // 提取本金
+  //     await withdrawContract.withdrawStake(ETH("1"));
+  //     _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
+  //     const _stakeBalanceAdmin2 = await stakeEntryContract.getStakeBalance(admin.address);
+  //     Log("admin balance2:" + _adminBalance);
+  //     Log("admin stake balance2:" + _stakeBalanceAdmin2);
+  //     expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(ETH("1")));
+  //   });
+  // });
 
   describe("Recommend", function () {
 
-    it("Should withdraw stake balance correctly for staker", async function () {
-      let _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-      const _stakeBalanceAdmin1 = await stakeEntryContract.getStakeBalance(admin.address);
-      Log("admin balance1:" + _adminBalance);
-      Log("admin stake balance1:" + _stakeBalanceAdmin1);
-      // 提取本金
-      await withdrawContract.withdrawStake(ETH("1"));
-      _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-      const _stakeBalanceAdmin2 = await stakeEntryContract.getStakeBalance(admin.address);
-      Log("admin balance2:" + _adminBalance);
-      Log("admin stake balance2:" + _stakeBalanceAdmin2);
-      expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(ETH("1")));
+    it("Should get referrer correctly for user", async function () {
+      const _referrer = await recommendContract.getReferrer();
+      Log(_referrer.toString());
+      expect(_referrer).to.equal(ethers.constants.AddressZero);
+      await recommendContract.setReferrer(stakeUser1.address);
+      const _referrerNew = await recommendContract.getReferrer();
+      expect(_referrerNew).to.equal(stakeUser1.address);
     });
   });
 

@@ -44,7 +44,7 @@ contract Recommend is Ownable, Pausable, ReentrancyGuard {
         svData.pushReferrerUsers(_referrer, msg.sender);
     }
 
-    function getReferrer() public returns (address) {
+    function getReferrer() public view returns (address) {
         return svData.getUserReferrer(msg.sender);
     }
 
