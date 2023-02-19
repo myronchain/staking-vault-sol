@@ -29,17 +29,49 @@
 ### 合约架构
 
 ```mermaid
-graph TD
-B --> C[XX部]
-B --> D[XX部]
-B --> E[XX部]
-C--> G[模块4]
-C--> H[模块5]
-C--> J[模块6]
-D--> K[模块K]
-E--> L[模块1]
-E--> Z[模块2]
-E--> X[模块3]
+classDiagram
+ERC20MockTest <.. StakeData: Dependency Only In Test
+StakeData <.. Withdraw: Dependency
+StakeData <.. StakeEntry: Dependency
+Withdraw <.. StakeEntry: Dependency
+StakeData <.. Recommend: Dependency
+
+
+class ERC20MockTest {
+  uint256 initialSupply
+}
+
+
+class StakeData {
+    bool _isMainToken,
+    address _stakingToken,
+    address _stakingBank,
+    address _rewardsToken,
+    uint256 _rewardRate,
+    uint256 _stakeRewardsStartTime,
+    uint256 _manageFeeStartTime,
+    uint256 _manageFeeRate,
+    uint256 _referrerRate
+}
+
+StakeData : +setXXX(_xxx)
+StakeData : +getXXXs() _xxx
+
+
+class Recommend {
+  address _stakeDataAddress
+}
+
+
+class Withdraw {
+  address _stakeDataAddress
+}
+
+
+class StakeEntry {
+  address _stakeDataAddress, 
+  address _withdrawContractAddress
+}
 ```
 
 ### 合约简介
