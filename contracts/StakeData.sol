@@ -305,13 +305,4 @@ contract StakeData is Ownable, Pausable {
         _unpause();
     }
 
-    /**
-      * @dev convert uint256 (HexString add 0x at beginning) tron address to solidity address type
-      * @param  tronAddress uint256 tronAddress, begin with 0x, followed by HexString
-      * @return Solidity address type
-      */
-    function convertFromTronInt(uint256 tronAddress) public view returns(address){
-        return address(tronAddress);
-    }
-
 }
