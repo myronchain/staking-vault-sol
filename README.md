@@ -33,17 +33,20 @@
 4. StakeEntry: 质押入口，质押的钱会被转移到Withdraw合约，用于被Owner提取 
 5. Recommend: 邀请机制合约
 
-## 合约接口(事件)
+## 合约事件
 
-### StakingVault
-
-- Staked
-
-  - `_from`: 质押时间
-
-  - `amount`: 质押数量
-
-- TODO
+- 提取质押代币
+  - 事件名：WithdrawStake
+  - 参数：`_from`、`_amount`
+- Owner提取代币
+  - 事件名：WithdrawOwner
+  - 参数：`_from`、`_amount`
+- 质押奖励提取
+  - 事件名：RewardStakeClaimed
+  - 参数：`_from`、`_amount`
+- 邀请奖励提取
+  - 事件名：RewardReferrerClaimed
+  - 参数：`_from`、`_amount`
 
 ## 合约函数
 
@@ -244,9 +247,9 @@
 
 
 ## 安装环境
-```shell
-npm install
-```
+  ```shell
+  npm install
+  ```
 
 ## 使用脚本部署
 
