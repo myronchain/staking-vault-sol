@@ -306,9 +306,15 @@ Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支�
 ### Token质押
 
 1. BSC测试网：
-   - ERC20测试: 0x72042D9AD9a32a889f0130A1476393eC0234b1b4
-   - StakeData: 0xCF3244CEb4a3D707383c53E0dccAC7274b1404D4
-   - Withdraw: 0xA2790dCe606817C095e0A8131a4d04e4Fc16ED72
-   - StakeEntry: 0x7258e672930b37f8dAE23992B1a9D3e7916C32Ff
-   - Recommend: 0xA811444E7238640Ff6af3C0dCd515c2b387ebdCA
+  - 主代币质押：
+    - StakeData: 0x43D98019dA9c36Cd5eEa7D3910F5f76B15b2Cc27
+    - Withdraw: 0xD93Bf4fF0c3B6EF45E2Bfa1D0B146C9b3285CAdE
+    - StakeEntry: 0x5CBC5AEcD2Cb1Ceab6a81754A5A6570d3bf2c813
+    - Recommend: 0xbB720d733634d22EBf19dC52E97dA71Ef83bD1E4
+  - Token质押：
+    - ERC20: 0x72042D9AD9a32a889f0130A1476393eC0234b1b4
+    - StakeData: 0xCF3244CEb4a3D707383c53E0dccAC7274b1404D4
+    - Withdraw: 0xA2790dCe606817C095e0A8131a4d04e4Fc16ED72
+    - StakeEntry: 0x7258e672930b37f8dAE23992B1a9D3e7916C32Ff
+    - Recommend: 0xA811444E7238640Ff6af3C0dCd515c2b387ebdCA
 2. BSC主网：
