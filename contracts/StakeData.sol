@@ -132,12 +132,12 @@ contract StakeData is Ownable, Pausable {
     }
 
     modifier _callGet {
-        require(callGetContract[msg.sender], "you can't call get function");
+        require(callGetContract[msg.sender] || msg.sender == owner(), "you can't call get function");
         _;
     }
 
     modifier _callSet {
-        require(callSetContract[msg.sender], "you can't call get function");
+        require(callSetContract[msg.sender] || msg.sender == owner(), "you can't call get function");
         _;
     }
 

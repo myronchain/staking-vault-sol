@@ -211,7 +211,7 @@ describe("StakingVault Main Token Test", function () {
       let _adminBalance1 = (await web3.eth.getBalance(admin.address)).toString()
       Log("admin balance1:" + _adminBalance1);
 
-      await withdrawContract.claimAllReward(admin.address);
+      await withdrawContract.claimAllReward();
 
       let _adminBalance2 = (await web3.eth.getBalance(admin.address)).toString()
       Log("admin balance2:" + _adminBalance2);
@@ -240,6 +240,14 @@ describe("StakingVault Main Token Test", function () {
       await recommendContract.setReferrer(stakeUser1.address);
       const _referrerNew = await recommendContract.getReferrer();
       expect(_referrerNew).to.equal(stakeUser1.address);
+    });
+  });
+
+  describe("StakeData", function () {
+
+    it("Should get setIsMainToken", async function () {
+      const _isMainToken = await stakeDataContract.getIsMainToken();
+      expect(_isMainToken).to.equal(true);
     });
   });
 

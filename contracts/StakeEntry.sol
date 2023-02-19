@@ -142,7 +142,7 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
     }
 
     // 计算更新收益，接受外部调用
-    function calculateReward() public {
+    function calculateReward() public onlyOwner {
         for (uint256 i = 0; i < svData.getStateRecordAddressKeysSize(); ++i) {
             // 增加的用户质押奖励总额
             uint256 _addStakeRewardsAmount = 0;
@@ -177,7 +177,7 @@ contract StakeEntry is Ownable, Pausable, ReentrancyGuard {
     }
 
     // 更新管理费用
-    function calculateManageFee() public {
+    function calculateManageFee() public onlyOwner {
         for (uint256 i = 0; i < svData.getStateRecordAddressKeysSize(); ++i) {
             // 增加的用户管理费总额
             uint256 _addManageAmount = 0;

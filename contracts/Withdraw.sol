@@ -145,23 +145,23 @@ contract Withdraw is Ownable, Pausable, ReentrancyGuard {
     }
 
     // 提取本金+质押收益+邀请奖励
-    function claimAllReward(address _account) public nonReentrant {
+    function claimAllReward() public nonReentrant {
         // 提取本金
-        uint256 _amount1 = svData.getAddressUserInfo(_account).stakeAmount - svData.getAddressUserInfo(_account).manageFeeAmount;
+        uint256 _amount1 = svData.getAddressUserInfo(msg.sender).stakeAmount - svData.getAddressUserInfo(msg.sender).manageFeeAmount;
         if (_amount1 > 0) {
             _updateRecordHelper(2, _amount1);
             _transfer(svData.getStakingToken(), svData.getStakingBank(), msg.sender, _amount1);
             emit WithdrawStake(msg.sender, _amount1);
         }
         // 提取收益奖励
-        uint256 _amount2 = svData.getAddressUserInfo(_account).stakeRewardsAmount - svData.getAddressUserInfo(_account).stakeRewardsWithdrawAmount;
+        uint256 _amount2 = svData.getAddressUserInfo(msg.sender).stakeRewardsAmount - svData.getAddressUserInfo(msg.sender).stakeRewardsWithdrawAmount;
         if (_amount2 > 0) {
             _updateRecordHelper(3, _amount2);
             _transfer(svData.getRewardsToken(), svData.getStakingBank(), msg.sender, _amount2);
             emit RewardStakeClaimed(msg.sender, _amount2);
         }
         // 提取邀请奖励
-        uint256 _amount3 = svData.getAddressUserInfo(_account).referrerRewardsAmount - svData.getAddressUserInfo(_account).referrerRewardsWithdrawAmount;
+        uint256 _amount3 = svData.getAddressUserInfo(msg.sender).referrerRewardsAmount - svData.getAddressUserInfo(msg.sender).referrerRewardsWithdrawAmount;
         if (_amount3 > 0) {
             _updateRecordHelper(5, _amount3);
             _transfer(svData.getRewardsToken(), svData.getStakingBank(), msg.sender, _amount3);
