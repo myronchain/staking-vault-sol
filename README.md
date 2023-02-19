@@ -249,31 +249,52 @@ npm install
 ```
 
 ## 使用脚本部署
+
 ### 设置环境变量
 设置从.env.example复制到.env，并修改其中变量。或手动设置环境变量也可以。
 ETHERSCAN_API_KEY=ABC123ABC123ABC123ABC123ABC123ABC1
 PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
 把KEY换成自己的私钥，ETHERSCAN_API_KEY可以不设置（如果不需要在浏览器能看到合约代码）
 
-### 运行部署脚本
+### 运行脚本
+
+#### 测试脚本
+
+1. 编译合约
+  ```shell
+  npm run compile
+  ```
+2. 测试覆盖率
+  ```shell
+  npm run codecov
+  ```
+3. 测试主代币
+  ```shell
+  npm run test-maintoken
+  ```
+4. 测试Token
+  ```shell
+  npm run test-token
+  ```
+
+
+#### 部署脚本
 
 1. 在BSC测试网部署
-
-```shell
-# 部署主代币
-npm run deploy-bsctest-maintoken
-# 部署Token代币
-npm run deploy-bsctest-token
-```
+  ```shell
+  # 部署主代币
+  npm run deploy-bsctest-maintoken
+  # 部署Token代币
+  npm run deploy-bsctest-token
+  ```
 
 2. 在BSC主网部署
-
-```shell
-# 部署主代币
-npm run deploy-bsc-maintoken
-# 部署Token代币
-npm run deploy-bsc-token
-```
+  ```shell
+  # 部署主代币
+  npm run deploy-bsc-maintoken
+  # 部署Token代币
+  npm run deploy-bsc-token
+  ```
 
 ## 合约地址
 

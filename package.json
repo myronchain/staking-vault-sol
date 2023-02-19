@@ -4,14 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test1": "npx hardhat test --network hardhat ./test/sv-main-test.js",
-    "test2": "npx hardhat test --network hardhat ./test/sv-token-test.js",
     "compile": "npx hardhat compile",
+    "codecov": "npx hardhat coverage --network localhost",
+    "test-maintoken": "npx hardhat test --network hardhat ./test/sv-main-test.js",
+    "test-token": "npx hardhat test --network hardhat ./test/sv-token-test.js",
     "deploy-bsctest-maintoken": "npx hardhat --network bsctest_maintoken run scripts/deploy.js",
     "deploy-bsctest-token": "npx hardhat --network bsctest_token run scripts/deploy.js",
     "deploy-bsc-maintoken": "npx hardhat --network bsc_maintoken run scripts/deploy.js",
-    "deploy-bsc-token": "npx hardhat --network bsc_token run scripts/deploy.js",
-    "codecov": "npx hardhat coverage --network localhost"
+    "deploy-bsc-token": "npx hardhat --network bsc_token run scripts/deploy.js"
   },
   "keywords": [],
   "author": "",
@@ -48,6 +48,14 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/hardhat-upgrades": "^1.17.0",
-    "@openzeppelin/upgrades-core": "^1.14.2"
+    "@openzeppelin/upgrades-core": "^1.14.2",
+    "ganache": "^7.7.5",
+    "ganache-cli": "^6.12.2",
+    "solc": "^0.8.18"
+  },
+  "pnpm": {
+    "overrides": {
+      "ethereumjs-abi": "https://registry.npmjs.org/ethereumjs-abi/-/ethereumjs-abi-0.6.8.tgz"
+    }
   }
 }
