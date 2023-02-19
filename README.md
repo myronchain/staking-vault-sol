@@ -1,8 +1,8 @@
 # Staking Vault Solidity
 
-质押合约
+质押代币合约。
 
-## 需求
+具体功能：
 
 > 当产生提前赎回行为：
 >
@@ -22,10 +22,11 @@
    - 【赎回金额扣除】= 优先扣除最早一笔的（即N）；若赎回金额大于N，则从N+1扣除，以此类推）（注：如果赎回金额>总投入金额，则赎回失败）
    - 【剩余金额的计算逻辑】=N\*质押时间(每30天更新一次收益)\*利率 + N+1\*质押时间\*利率......（以此类推）
      - eg：A用户2.9日14点质押某币种100刀；在2.10日12点质押相同币种200刀；累计共300刀，那么如果A用户在2月14日提取了80刀（则按业务逻辑是只返回本金，没有利润），则剩下220刀，这220刀将分开按“质押时间和利率进行计算”（即为：2.9日剩下的20刀计算+2.10日剩下的200刀计算=最后到期时间的利润及本金） 
-
 5. 考虑裂变的问题：所以我们有【邀请业务】A用户邀请B用户。奖励机制：【A用户收取B用户所有质押总额2.5%】10.1 质押XXX时间（待定）后合约收取5%管理费（24h后给邀请者打2.5%邀奖励），若时间不足收取管理费，没有2.5%的邀请奖励
 
 ## 合约说明
+
+// TODO 合约架构
 
 1. ERC20Mock: ERC20测试使用 
 2. StakeData: 质押数据存储合约 
@@ -100,13 +101,13 @@
 - 获取质押总量
   - 函数名：getTotalStaked
   - 参数：无
-- 设置质押收益周期
+- 设置质押收益周期(单位: s，下同)
   - 函数名：setStakeRewardsStartTime
   - 参数：`_stakeRewardsStartTime`
 - 获取质押收益周期
   - 函数名：getStakeRewardsStartTime
   - 参数：无
-- 设置管理费开始计算时间(单位: s，下同)
+- 设置管理费开始计算时间
   - 函数名：setManageFeeStartTime
   - 参数：`_manageFeeStartTime`
 - 获取管理费开始计算时间
@@ -251,17 +252,15 @@
   npm install
   ```
 
-## 使用脚本部署
+## 测试&部署合约
 
 ### 设置环境变量
-设置从.env.example复制到.env，并修改其中变量。或手动设置环境变量也可以。
-ETHERSCAN_API_KEY=ABC123ABC123ABC123ABC123ABC123ABC1
-PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
-把KEY换成自己的私钥，ETHERSCAN_API_KEY可以不设置（如果不需要在浏览器能看到合约代码）
+1. 从.env.example复制到.env，并修改其中变量
+2. ETHERSCAN_API_KEY=ABC123ABC123ABC123ABC123ABC123ABC1
+   PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
+   把KEY换成自己的私钥，ETHERSCAN_API_KEY可以不设置（如果不需要在浏览器能看到合约代码和在浏览器验证合约）
 
-### 运行脚本
-
-#### 测试脚本
+### 测试脚本
 
 1. 编译合约
   ```shell
@@ -305,7 +304,7 @@ PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
 - 水龙头：https://testnet.bnbchain.org/faucet-smart
 - 浏览器: https://testnet.bscscan.com/
 
-### Tron测试网：Shasta测试网
+### Tron测试网(Shasta)
 Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支持运行一个节点加入其中。
 
 - 官网:https://www.trongrid.io/shasta
@@ -318,15 +317,16 @@ Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支�
 ### Token质押
 
 1. BSC测试网：
-  - 主代币质押：
-    - StakeData: 0x43D98019dA9c36Cd5eEa7D3910F5f76B15b2Cc27
-    - Withdraw: 0xD93Bf4fF0c3B6EF45E2Bfa1D0B146C9b3285CAdE
-    - StakeEntry: 0x5CBC5AEcD2Cb1Ceab6a81754A5A6570d3bf2c813
-    - Recommend: 0xbB720d733634d22EBf19dC52E97dA71Ef83bD1E4
-  - Token质押：
-    - ERC20: 0x72042D9AD9a32a889f0130A1476393eC0234b1b4
-    - StakeData: 0xCF3244CEb4a3D707383c53E0dccAC7274b1404D4
-    - Withdraw: 0xA2790dCe606817C095e0A8131a4d04e4Fc16ED72
-    - StakeEntry: 0x7258e672930b37f8dAE23992B1a9D3e7916C32Ff
-    - Recommend: 0xA811444E7238640Ff6af3C0dCd515c2b387ebdCA
+
+     - 主代币质押：
+       - StakeData: 0x43D98019dA9c36Cd5eEa7D3910F5f76B15b2Cc27
+       - Withdraw: 0xD93Bf4fF0c3B6EF45E2Bfa1D0B146C9b3285CAdE
+       - StakeEntry: 0x5CBC5AEcD2Cb1Ceab6a81754A5A6570d3bf2c813
+       - Recommend: 0xbB720d733634d22EBf19dC52E97dA71Ef83bD1E4
+     - Token质押：
+       - ERC20: 0x72042D9AD9a32a889f0130A1476393eC0234b1b4
+         - StakeData: 0xCF3244CEb4a3D707383c53E0dccAC7274b1404D4
+         - Withdraw: 0xA2790dCe606817C095e0A8131a4d04e4Fc16ED72
+         - StakeEntry: 0x7258e672930b37f8dAE23992B1a9D3e7916C32Ff
+         - Recommend: 0xA811444E7238640Ff6af3C0dCd515c2b387ebdCA
 2. BSC主网：
