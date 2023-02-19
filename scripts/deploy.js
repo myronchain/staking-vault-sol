@@ -10,22 +10,23 @@ const hre = require("hardhat");
 // Constants
 const network_configs = {
     bsctest_maintoken: {
-        ERC20_ADDRESS: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
+        STAKING_TOKEN: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4", // 质押Token地址，主代币质押不需要此值
+        STAKING_BANK: "0xfF171DDfB3236940297808345f7e32C4b5BF097f", // 质押银行，用于提取奖励
+        REWARDS_TOKEN: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4", // 奖励Token地址，主代币不需要此值
+        STAKE_REWARDS_START_TIME: 3600000 * 24 * 30, // 质押奖励计算周期(单位: s，下同)
+        REWARD_RATE: 60000000, // 质押奖励系数(精度为8，例如10000000代表0.1，下同)
+        MANAGE_FEE_START_TIME: 3600000 * 24 * 1, // 管理费计算周期
+        MANAGE_FEE_RATE: 5000000, // 管理费系数
+        REFERRER_RATE: 2500000, // 邀请奖励系数
+    }, bsctest_token: {
+        STAKING_TOKEN: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
         STAKING_BANK: "0xfF171DDfB3236940297808345f7e32C4b5BF097f",
         REWARDS_TOKEN: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
         STAKE_REWARDS_START_TIME: 3600000 * 24 * 30,
         REWARD_RATE: 60000000,
         MANAGE_FEE_START_TIME: 3600000 * 24 * 1,
         MANAGE_FEE_RATE: 5000000,
-    },
-    bsctest_token: {
-        ERC20_ADDRESS: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
-        STAKING_BANK: "0xfF171DDfB3236940297808345f7e32C4b5BF097f",
-        REWARDS_TOKEN: "0x72042D9AD9a32a889f0130A1476393eC0234b1b4",
-        STAKE_REWARDS_START_TIME: 3600000 * 24 * 30,
-        REWARD_RATE: 60000000,
-        MANAGE_FEE_START_TIME: 3600000 * 24 * 1,
-        MANAGE_FEE_RATE: 5000000,
+        REFERRER_RATE: 2500000,
     },
 }
 
@@ -51,7 +52,7 @@ async function main() {
     console.log("Is Main Token: ", isMainToken);
     // Get the ContractFactory
     const StakeDataFactory = await ethers.getContractFactory("StakeData");
-    const stakeDataContract = await StakeDataFactory.deploy(isMainToken, network_configs[hre.network.name].ERC20_ADDRESS, network_configs[hre.network.name].STAKING_BANK, network_configs[hre.network.name].REWARDS_TOKEN, network_configs[hre.network.name].REWARD_RATE, network_configs[hre.network.name].STAKE_REWARDS_START_TIME, network_configs[hre.network.name].MANAGE_FEE_START_TIME, network_configs[hre.network.name].MANAGE_FEE_RATE);
+    const stakeDataContract = await StakeDataFactory.deploy(isMainToken, network_configs[hre.network.name].ERC20_ADDRESS, network_configs[hre.network.name].STAKING_BANK, network_configs[hre.network.name].REWARDS_TOKEN, network_configs[hre.network.name].REWARD_RATE, network_configs[hre.network.name].STAKE_REWARDS_START_TIME, network_configs[hre.network.name].MANAGE_FEE_START_TIME, network_configs[hre.network.name].MANAGE_FEE_RATE, network_configs[hre.network.name].REFERRER_RATE);
     await stakeDataContract.deployed();
     console.log("Deployed success. StakeData Contract address: " + stakeDataContract.address + ", Deploy Address: " + await stakeDataContract.owner())
 
@@ -81,7 +82,7 @@ async function main() {
     await stakeDataContract.addCallSetContract(recommendContract.address);
     // 设置质押银行为提取合约，用于提取代币
     await stakeDataContract.setStakingBank(withdrawContract.address);
-    console.log("SET LIMITS OF AUTHORITY SUCCESS\n")
+    console.log("SET LIMITS OF AUTHORITY SUCCESS")
 
     // verify the contracts
     // await hre.run("verify:verify", {
