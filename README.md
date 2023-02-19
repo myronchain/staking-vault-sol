@@ -158,7 +158,7 @@
   - 取消调用合约Set函数：deleteCallSetContract
 
 
-### StakeData: 质押相关
+### StakeEntry: 质押相关
 
 - ✅质押主代币
   - 函数名：mainTokenStake
