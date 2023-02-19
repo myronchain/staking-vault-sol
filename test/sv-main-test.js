@@ -33,13 +33,15 @@ describe("StakingVault Main Token Test", function () {
   const STAKING_TOKEN_BUSD_TEST = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
   const STAKING_BANK = "0xfF171DDfB3236940297808345f7e32C4b5BF097f";
   const REWARDS_TOKEN = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
-  // 使用的时候除以1e8  2.5%
+  // 质押奖励系数 使用的时候除以1e8  2.5%
   const REWARD_RATE = 60000000;
-  // 单位: ms
+  // 单位: s
   const STAKE_REWARDS_START_TIME = 1;
   const MANAGE_FEE_START_TIME = 1;
   // 使用的时候除以1e8  5%
   const MANAGE_FEE_RATE = 5000000;
+  // 推荐奖励系数
+  const REFERRER_RATE_FEE_RATE = 2500000;
 
   // 质押用户质押数量
   const stakedAmount1 = ETH("1");
@@ -61,7 +63,8 @@ describe("StakingVault Main Token Test", function () {
     StakeDataFactory = await ethers.getContractFactory("StakeData");
     stakeDataContract = await StakeDataFactory.deploy(true, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARDS_TOKEN, REWARD_RATE, STAKE_REWARDS_START_TIME,
         MANAGE_FEE_START_TIME,
-        MANAGE_FEE_RATE
+        MANAGE_FEE_RATE,
+        REFERRER_RATE_FEE_RATE
     );
     await stakeDataContract.deployed();
     Log("Deployed success. StakeData Contract address: " + stakeDataContract.address + ", Deploy Address: " + await stakeDataContract.owner())
@@ -146,7 +149,7 @@ describe("StakingVault Main Token Test", function () {
     });
   });
 
-  describe("Stake", function () {
+  describe("StakeEntry", function () {
 
     it("Should stake correctly for staker", async function () {
       // 验证质押人的质押总额
@@ -171,6 +174,21 @@ describe("StakingVault Main Token Test", function () {
       await stakeEntryContract.calculateReward();
       const _rewardsUser1 = await stakeEntryContract.getRewardCount(stakeUser1.address);
       expect(_rewardsUser1).to.not.equal(0);
+    });
+
+    it("Should get rewards correctly for referrer", async function () {
+
+      // 设置推荐人
+      await recommendContract.setReferrer(stakeUser2.address);
+      let _referrerNew = await recommendContract.getReferrer();
+      expect(_referrerNew).to.equal(stakeUser2.address)
+
+      // 计算邀请人的邀请奖励
+      await stakeEntryContract.calculateManageFee();
+      Log("stakeUser2.address: " + stakeUser2.address);
+      const _rewardsUser1 = await stakeEntryContract.getReferrerRewardsBalance(stakeUser2.address);
+      expect(_rewardsUser1).to.not.equal(0);
+
     });
 
   });

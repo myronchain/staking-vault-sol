@@ -39,6 +39,8 @@ describe("StakingVault Main Token Test", function () {
     const MANAGE_FEE_START_TIME = 2;
     // 使用的时候除以1e8  5%
     const MANAGE_FEE_RATE = 5000000;
+    // 推荐奖励系数
+    const REFERRER_RATE_FEE_RATE = 2500000;
 
     // 质押用户质押数量
     const stakedAmount1 = 10;
@@ -61,7 +63,7 @@ describe("StakingVault Main Token Test", function () {
         STAKING_TOKEN_BUSD_TEST = erc20Contract.address;
         REWARDS_TOKEN = erc20Contract.address;
         STAKING_BANK = admin.address;
-        stakeDataContract = await StakeDataFactory.deploy(false, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARDS_TOKEN, REWARD_RATE, STAKE_REWARDS_START_TIME, MANAGE_FEE_START_TIME, MANAGE_FEE_RATE);
+        stakeDataContract = await StakeDataFactory.deploy(false, STAKING_TOKEN_BUSD_TEST, STAKING_BANK, REWARDS_TOKEN, REWARD_RATE, STAKE_REWARDS_START_TIME, MANAGE_FEE_START_TIME, MANAGE_FEE_RATE, REFERRER_RATE_FEE_RATE);
         await stakeDataContract.deployed();
         Log("Deployed success. StakeData Contract address: " + stakeDataContract.address + ", Deploy Address: " + await stakeDataContract.owner())
 

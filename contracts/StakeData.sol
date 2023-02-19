@@ -104,7 +104,18 @@ contract StakeData is Ownable, Pausable {
     mapping(address => bool) callSetContract;
 
 
-    /** 构造函数 */
+    /**
+     * 构造函数
+     * - _isMainToken：是否是主代币
+     * - _stakingToken：质押Token地址，主代币质押不需要此值
+     * - _stakingBank：质押银行，用于提取奖励
+     * - _rewardsToken：奖励Token地址，主代币不需要此值
+     * - _rewardRate：质押奖励系数(精度为8，例如10000000代表0.1，下同)
+     * - _stakeRewardsStartTime：质押奖励计算周期(单位: s，下同)
+     * - _manageFeeStartTime：管理费计算周期
+     * - _manageFeeRate：管理费系数
+     * - _referrerRate：邀请奖励系数
+     */
     constructor(
         bool _isMainToken,
         address _stakingToken,
@@ -113,11 +124,17 @@ contract StakeData is Ownable, Pausable {
         uint256 _rewardRate,
         uint256 _stakeRewardsStartTime,
         uint256 _manageFeeStartTime,
-        uint256 _manageFeeRate
+        uint256 _manageFeeRate,
+        uint256 _referrerRate
     ) {
-        require(!isMainToken && _stakingToken != address(0), "staking token address cannot be 0");
-        require(!isMainToken && _stakingBank != address(0), "staking bank address cannot be 0");
+        require(!isMainToken && _stakingToken != address(0), "staking token address cannot be 0 when _isMainToken is true");
+        require(!isMainToken && _rewardsToken != address(0), "rewards token address cannot be 0 when _isMainToken is true");
+        require(_stakingBank != address(0), "staking bank address cannot be 0");
         require(_rewardRate > 0, "reward rate must be greater than 0");
+        require(_stakeRewardsStartTime > 0, "stake reward start time must be greater than 0");
+        require(_manageFeeStartTime > 0, "manage fee start time must be greater than 0");
+        require(_manageFeeRate > 0, "manage fee rate must be greater than 0");
+        require(_referrerRate > 0, "referrer rate must be greater than 0");
 
         isMainToken = _isMainToken;
         stakingBank = _stakingBank;
@@ -129,6 +146,7 @@ contract StakeData is Ownable, Pausable {
         stakeRewardsStartTime = _stakeRewardsStartTime;
         manageFeeStartTime = _manageFeeStartTime;
         manageFeeRate = _manageFeeRate;
+        referrerRate = _referrerRate;
     }
 
     modifier _callGet {

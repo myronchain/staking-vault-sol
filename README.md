@@ -161,11 +161,11 @@
 
 ### StakeEntry: 质押相关
 
-- ✅质押主代币
+- 【重点测试】质押主代币
   - 函数名：mainTokenStake
   - 参数：注意value不能为0
 
-- ✅质押代币
+- 【重点测试】质押代币
   - 函数名：tokenStake
   - 参数：_amount
 
@@ -181,7 +181,7 @@
   - 函数名：setStakingBank
   - 参数：_stakingBank
 
-- ✅获取合约的质押总额
+- 【重点测试】获取合约的质押总额
   - 函数名：totalStaked
   - 参数：空
 
@@ -193,14 +193,14 @@
   - 函数名：getStakeAmount
   - 参数：startTime、endTime
 
-- ✅ 获取指定人的质押总额
+- 【重点测试】获取指定人的质押总额
   - 函数名：getStakeAmount
   - 参数：_account
 
 
 ### Withdraw: 提取相关
 
-- ✅提取本金
+- 【重点测试】提取本金
   - 函数名：withdrawStake
   - 参数：_amount
 - 提取质押收益
@@ -209,16 +209,16 @@
 - 提取推荐收益
   - 函数名：claimReferrerReward
   - 参数：_amount
-- ✅提取所有本金+收益
+- 【重点测试】提取所有本金+收益
   - 函数名：claimAllReward
   - 参数：_account
 - 提取代币给Owner
   - 函数名：withdrawOwner
   - 参数：_amount
-- ✅计算收益相关数值(定时调用)
+- 【重点测试】计算收益相关数值(定时调用)
   - 函数名：calculateReward
   - 参数：无
-- ✅更新管理费用(定时调用)
+- 【重点测试】更新管理费用(定时调用)
   - 函数名：calculateManageFee
   - 参数：无
 - 将所有邀请奖励费用转给对应推荐人(定时调用)
