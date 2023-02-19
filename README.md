@@ -76,6 +76,8 @@ class StakeEntry {
 }
 ```
 
+要求部署顺序从上到下依次部署，非测试环境不需要部署ERC20Mock
+
 ### 合约简介
 1. ERC20Mock: ERC20测试使用 
 2. StakeData: 质押数据存储合约 
@@ -331,7 +333,8 @@ class StakeEntry {
 
 ### 部署脚本
 
-1. 在BSC测试网部署
+1. 修改[deploy.js](scripts%2Fdeploy.js)文件中的network_configs变量，文件中包含每个变量的含义
+2. 在BSC测试网部署
     ```shell
     # 部署主代币
     npm run deploy-bsctest-maintoken
@@ -339,7 +342,7 @@ class StakeEntry {
     npm run deploy-bsctest-token
     ```
 
-2. 在BSC主网部署
+3. 在BSC主网部署
     ```shell
     # 部署主代币
     npm run deploy-bsc-maintoken
