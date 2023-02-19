@@ -205,11 +205,23 @@ describe("StakingVault Main Token Test", function () {
       expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(ETH("1")));
     });
 
-    it("Should can withdra all rewards", async function () {
+    it("Should can withdraw all rewards", async function () {
       let _adminBalance1 = (await web3.eth.getBalance(admin.address)).toString()
       Log("admin balance1:" + _adminBalance1);
 
       await withdrawContract.claimAllReward(admin.address);
+
+      let _adminBalance2 = (await web3.eth.getBalance(admin.address)).toString()
+      Log("admin balance2:" + _adminBalance2);
+
+      expect(_adminBalance1).to.not.equal(_adminBalance2);
+    })
+
+    it("Should can withdraw all token by owner", async function () {
+      let _adminBalance1 = (await web3.eth.getBalance(admin.address)).toString()
+      Log("admin balance1:" + _adminBalance1);
+
+      await withdrawContract.withdrawOwner(5 * 1e18);
 
       let _adminBalance2 = (await web3.eth.getBalance(admin.address)).toString()
       Log("admin balance2:" + _adminBalance2);
