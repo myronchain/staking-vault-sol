@@ -30,14 +30,14 @@
 
 ```mermaid
 classDiagram
-ERC20MockTest <.. StakeData: Dependency Only In Test
+ERC20Mock <.. StakeData: Dependency Only In Test
 StakeData <.. Withdraw: Dependency
 StakeData <.. StakeEntry: Dependency
 Withdraw <.. StakeEntry: Dependency
 StakeData <.. Recommend: Dependency
 
 
-class ERC20MockTest {
+class ERC20Mock {
   uint256 initialSupply
 }
 
