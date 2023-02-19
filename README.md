@@ -253,19 +253,26 @@ npm install
 设置从.env.example复制到.env，并修改其中变量。或手动设置环境变量也可以。
 ETHERSCAN_API_KEY=ABC123ABC123ABC123ABC123ABC123ABC1
 PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
-把KEY换成自己的，ETHERSCAN_API_KEY可以不设置（如果不需要再polygonscan能看到合约代码的话）
+把KEY换成自己的私钥，ETHERSCAN_API_KEY可以不设置（如果不需要在浏览器能看到合约代码）
 
 ### 运行部署脚本
 
 1. 在BSC测试网部署
 
 ```shell
-npm run deploy-bsctest
+# 部署主代币
+npm run deploy-bsctest-maintoken
+# 部署Token代币
+npm run deploy-bsctest-token
 ```
 
 2. 在BSC主网部署
 
 ```shell
+# 部署主代币
+npm run deploy-bsc-maintoken
+# 部署Token代币
+npm run deploy-bsc-token
 ```
 
 ## 合约地址
@@ -300,10 +307,8 @@ Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支�
 
 1. BSC测试网：
    - ERC20测试: 0x72042D9AD9a32a889f0130A1476393eC0234b1b4
-   - StakeData:
-   - Withdraw:
-   - StakeEntry:
-   - Recommend:
+   - StakeData: 0xCF3244CEb4a3D707383c53E0dccAC7274b1404D4
+   - Withdraw: 0xA2790dCe606817C095e0A8131a4d04e4Fc16ED72
+   - StakeEntry: 0x7258e672930b37f8dAE23992B1a9D3e7916C32Ff
+   - Recommend: 0xA811444E7238640Ff6af3C0dCd515c2b387ebdCA
 2. BSC主网：
-3. TRON测试网：
-4. TRON主网：

@@ -223,7 +223,7 @@ describe("StakingVault Main Token Test", function () {
       let _adminBalance1 = (await web3.eth.getBalance(admin.address)).toString()
       Log("admin balance1:" + _adminBalance1);
 
-      await withdrawContract.withdrawOwner(5 * 1e18);
+      await withdrawContract.withdrawOwner(1);
 
       let _adminBalance2 = (await web3.eth.getBalance(admin.address)).toString()
       Log("admin balance2:" + _adminBalance2);

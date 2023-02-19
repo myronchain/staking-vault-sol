@@ -65,8 +65,23 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    bsctest: {
+    bsctest_maintoken: {
       url: `https://endpoints.omniatech.io/v1/bsc/testnet/public`,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    bsctest_token: {
+      url: `https://endpoints.omniatech.io/v1/bsc/testnet/public`,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    bsc_maintoken: {
+      url: `https://endpoints.omniatech.io/v1/bsc/mainnet/public`,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    bsc_token: {
+      url: `https://endpoints.omniatech.io/v1/bsc/mainnet/public`,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },

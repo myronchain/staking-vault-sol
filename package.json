@@ -7,7 +7,10 @@
     "test1": "npx hardhat test --network hardhat ./test/sv-main-test.js",
     "test2": "npx hardhat test --network hardhat ./test/sv-token-test.js",
     "compile": "npx hardhat compile",
-    "deploy-bsctest": "npx hardhat --network bsctest run scripts/deploy.js",
+    "deploy-bsctest-maintoken": "npx hardhat --network bsctest_maintoken run scripts/deploy.js",
+    "deploy-bsctest-token": "npx hardhat --network bsctest_token run scripts/deploy.js",
+    "deploy-bsc-maintoken": "npx hardhat --network bsc_maintoken run scripts/deploy.js",
+    "deploy-bsc-token": "npx hardhat --network bsc_token run scripts/deploy.js",
     "codecov": "npx hardhat coverage --network localhost"
   },
   "keywords": [],
