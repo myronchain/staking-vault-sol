@@ -106,7 +106,7 @@
 - 获取质押收益周期
   - 函数名：getStakeRewardsStartTime
   - 参数：无
-- 设置管理费开始计算时间(单位: ms，下同)
+- 设置管理费开始计算时间(单位: s，下同)
   - 函数名：setManageFeeStartTime
   - 参数：`_manageFeeStartTime`
 - 获取管理费开始计算时间
@@ -281,7 +281,7 @@ PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
   ```
 
 
-#### 部署脚本
+### 部署脚本
 
 1. 在BSC测试网部署
   ```shell
@@ -299,13 +299,13 @@ PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
   npm run deploy-bsc-token
   ```
 
-### 网络信息
+## 网络信息
 
-#### BSC测试网
+### BSC测试网
 - 水龙头：https://testnet.bnbchain.org/faucet-smart
 - 浏览器: https://testnet.bscscan.com/
 
-#### Tron测试网：Shasta测试网
+### Tron测试网：Shasta测试网
 Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支持运行一个节点加入其中。
 
 - 官网:https://www.trongrid.io/shasta
