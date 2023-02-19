@@ -45,9 +45,9 @@ describe("StakingVault Main Token Test", function () {
   const MANAGE_FEE_RATE = 5000000;
 
   // 质押用户质押数量
-  const stakedAmount1 = ETH("10");
-  const stakedAmount2 = ETH("20");
-  const stakedAmount3 = ETH("30");
+  const stakedAmount1 = 10;
+  const stakedAmount2 = 20;
+  const stakedAmount3 = 30;
 
   // `beforeEach` will run before each test, re-deploying the contract every
   // time. It receives a callback, which can be async.
@@ -94,128 +94,41 @@ describe("StakingVault Main Token Test", function () {
 
     await stakeDataContract.setStakingToken(erc20Contract.address);
 
-    await erc20Contract.approve(stakeEntryContract.address, BigNumber.from(1));
-    await erc20Contract.approve(withdrawContract.address, BigNumber.from(1));
-
-    // TODO token测试未完
+    await erc20Contract.approve(stakeEntryContract.address, BigNumber.from(1e2));
+    await erc20Contract.approve(withdrawContract.address, BigNumber.from(1e2));
 
     // 模拟质押
-    // 第一个人质押
-    // let boo = (stakeDataContract.getIsMainToken())
-    // Log("stakeEntryContract main token:"+boo);
+    // admin质押
+    let bool = (stakeDataContract.getIsMainToken())
+    Log("stakeEntryContract main token:"+bool);
     let stakeUser1Balance = (await erc20Contract.balanceOf(admin.address)).toString()
     Log("StakeUser1Balance before staking: " + stakeUser1Balance);
-    await stakeEntryContract.tokenStake(1)
+    await stakeEntryContract.tokenStake(stakedAmount1)
     stakeUser1Balance = (await erc20Contract.balanceOf(admin.address)).toString()
     Log("StakeUser1Balance after staking: " + stakeUser1Balance);
     const amount1 = (await erc20Contract.balanceOf(stakeEntryContract.address)).toString()
-    Log("StakeData Contract Main Token Amount1: " + amount1);
+    Log("StakeData Contract ERC20 Token Amount1: " + amount1);
 
-    // 第二个人质押
-    // let stakeUser2Balance = (await web3.eth.getBalance(stakeUser2.address)).toString()
-    // Log("StakeUser2Balance before staking: " + stakeUser2Balance);
-    // await stakeUser2.sendTransaction({
-    //   to: stakeEntryContract.address, value: stakedAmount2,
-    // }, function (err, hash) {
-    //   if (err) {
-    //     Log(err);
-    //   }
-    // });
-    // stakeUser2Balance = (await web3.eth.getBalance(stakeUser2.address)).toString()
-    // Log("StakeUser2Balance after staking: " + stakeUser2Balance);
-    // const amount2 = (await web3.eth.getBalance(stakeEntryContract.address)).toString()
-    // Log("StakeData Contract Main Token Amount2: " + amount2);
-    //
-    // // admin 质押
-    // let adminBalance = (await web3.eth.getBalance(stakeUser2.address)).toString()
-    // Log("admin Balance before staking: " + stakeUser2Balance);
-    // await admin.sendTransaction({
-    //   to: stakeEntryContract.address, value: stakedAmount3,
-    // }, function (err, hash) {
-    //   if (err) {
-    //     Log(err);
-    //   }
-    // });
-    // adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-    // Log("Admin Balance after staking: " + adminBalance);
-    // const amount3 = (await web3.eth.getBalance(stakeEntryContract.address)).toString()
-    // Log("StakeData Contract Main Token Amount3: " + amount3);
   });
 
-  // describe("TransferOwnership", async function () {
-  //   it("Should set the right owner", async function () {
-  //     await stakeDataContract.transferOwnership(owner.address.toLowerCase());
-  //     const svOwner = await stakeDataContract.owner();
-  //     expect(svOwner.toLowerCase()).to.equal(owner.address.toLowerCase());
-  //   });
-  // });
-  //
-  // describe("Stake", function () {
-  //
-  //   let stakedAmount1 = ETH("10");
-  //   let stakedAmount2 = ETH("20");
-  //
-  //   it("Should stake correctly for staker", async function () {
-  //     // 验证质押人的质押总额
-  //     const _stakedAmount1 = await stakeEntryContract.stakedOf(stakeUser1.address);
-  //     expect(_stakedAmount1).to.equal(stakedAmount1);
-  //     const _stakedAmount2 = await stakeEntryContract.stakedOf(stakeUser2.address);
-  //     expect(_stakedAmount2).to.equal(stakedAmount2);
-  //   });
-  //
-  //   it("Should stake correctly for contract", async function () {
-  //     // 验证合约质押总额
-  //     const _totalStaked = await stakeEntryContract.getTotalStaked();
-  //     expect(_totalStaked).to.equal(stakedAmount1.add(stakedAmount2));
-  //   });
-  // });
+  describe("Stake", function () {
 
+    it("Should stake correctly for staker", async function () {
+      // 验证质押人的质押总额
+      const _stakedAmount1 = await stakeEntryContract.getStakeAmount(admin.address);
+      expect(_stakedAmount1).to.equal(stakedAmount1);
+    });
 
-  // describe("Calculation Rewards", function () {
-  //
-  //   it("Should get rewards correctly for staker", async function () {
-  //     sleep(STAKE_REWARDS_START_TIME);
-  //     // 验证质押人的质押总额
-  //     await stakeEntryContract.calculateReward();
-  //     const _rewardsUser1 = await stakeEntryContract.getRewardCount(stakeUser1.address);
-  //     expect(_rewardsUser1).to.equal(stakedAmount1.mul(REWARD_RATE).div(1e8));
-  //   });
-  //
-  //   it("Should stake correctly for contract", async function () {
-  //     // 验证合约质押总额
-  //     const _totalStaked = await stakeEntryContract.getTotalStaked();
-  //     expect(_totalStaked).to.equal(stakedAmount1.add(stakedAmount2));
-  //   });
-  // });
-
-  // describe("Calculation Manage Fee", function () {
-  //
-  //   it("Should stake balance correctly for staker after reduce manage fee", async function () {
-  //     // 验证质押人的管理费是否扣除
-  //     await stakeEntryContract.calculateManageFee();
-  //     const _stakeBalanceUser1 = await stakeEntryContract.getStakeBalance(stakeUser1.address);
-  //     expect(_stakeBalanceUser1).to.equal(stakedAmount1.sub(stakedAmount1.mul(MANAGE_FEE_RATE).div(1e8)));
-  //   });
-  // });
-
-  describe("Withdraw", function () {
-
-    it("Should withdraw stake balance correctly for staker", async function () {
-      let _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-      const _stakeBalanceAdmin1 = await stakeEntryContract.getStakeBalance(admin.address);
-      Log("admin balance1:" + _adminBalance);
-      Log("admin stake balance1:" + _stakeBalanceAdmin1);
-      // 提取本金
-      await withdrawContract.withdrawStake(ETH("1"));
-      _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
-      const _stakeBalanceAdmin2 = await stakeEntryContract.getStakeBalance(admin.address);
-      Log("admin balance2:" + _adminBalance);
-      Log("admin stake balance2:" + _stakeBalanceAdmin2);
-      expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(ETH("1")));
+    it("Should stake correctly for contract", async function () {
+      // 验证合约质押总额
+      const _totalStaked = await stakeEntryContract.getTotalStaked();
+      expect(_totalStaked).to.equal(stakedAmount1);
     });
   });
 
-  describe("Recommend", function () {
+
+  describe("Withdraw", function () {
+    let withdrawAmount = 5;
 
     it("Should withdraw stake balance correctly for staker", async function () {
       let _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
@@ -223,12 +136,12 @@ describe("StakingVault Main Token Test", function () {
       Log("admin balance1:" + _adminBalance);
       Log("admin stake balance1:" + _stakeBalanceAdmin1);
       // 提取本金
-      await withdrawContract.withdrawStake(ETH("1"));
+      await withdrawContract.withdrawStake(withdrawAmount);
       _adminBalance = (await web3.eth.getBalance(admin.address)).toString()
       const _stakeBalanceAdmin2 = await stakeEntryContract.getStakeBalance(admin.address);
       Log("admin balance2:" + _adminBalance);
       Log("admin stake balance2:" + _stakeBalanceAdmin2);
-      expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(ETH("1")));
+      expect(_stakeBalanceAdmin1).to.equal(_stakeBalanceAdmin2.add(withdrawAmount));
     });
   });
 

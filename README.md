@@ -196,7 +196,7 @@
 
 ### Withdraw: 提取相关
 
-- 提取本金
+- ✅提取本金
   - 函数名：withdrawStake
   - 参数：_amount
 - 提取质押收益
@@ -205,7 +205,7 @@
 - 提取推荐收益
   - 函数名：claimReferrerReward
   - 参数：_amount
-- 提取所有本金+收益
+- ✅提取所有本金+收益
   - 函数名：claimAllReward
   - 参数：_account
 - 提取代币给Owner
@@ -268,16 +268,6 @@ npm run deploy-bsctest
 ```shell
 ```
 
-3. 在TRON测试网部署
-
-```shell
-```
-
-4. 在TRON主网部署
-
-```shell
-```
-
 ## 合约地址
 
 ### 主币质押
@@ -290,6 +280,21 @@ npm run deploy-bsctest
 2. BSC主网：
 3. TRON测试网：
 4. TRON主网：
+
+### 网络信息
+
+#### BSC测试网
+- 水龙头：https://testnet.bnbchain.org/faucet-smart
+- 浏览器: https://testnet.bscscan.com/
+
+#### Tron测试网：Shasta测试网
+Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支持运行一个节点加入其中。
+
+- 官网:https://www.trongrid.io/shasta
+- 水龙头:https://www.trongrid.io/faucet
+- 浏览器:https://shasta.tronscan.org
+- HTTP API: https://api.shasta.trongrid.io
+
 
 ### Token质押
 

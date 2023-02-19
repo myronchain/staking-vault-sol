@@ -93,6 +93,8 @@ describe("StakingVault Main Token Test", function () {
 
     // 模拟质押
     // 第一个人质押
+    let bool = (stakeDataContract.getIsMainToken())
+    Log("stakeEntryContract main token:"+bool);
     let stakeUser1Balance = (await web3.eth.getBalance(stakeUser1.address)).toString()
     Log("StakeUser1Balance before staking: " + stakeUser1Balance);
     await stakeUser1.sendTransaction({
