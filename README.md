@@ -299,19 +299,6 @@ PRIVATE_KEY=0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1
   npm run deploy-bsc-token
   ```
 
-## 合约地址
-
-### 主币质押
-
-1. BSC测试网：
-   - StakeData: 0x43D98019dA9c36Cd5eEa7D3910F5f76B15b2Cc27
-   - Withdraw: 0xD93Bf4fF0c3B6EF45E2Bfa1D0B146C9b3285CAdE
-   - StakeEntry: 0x5CBC5AEcD2Cb1Ceab6a81754A5A6570d3bf2c813
-   - Recommend: 0xbB720d733634d22EBf19dC52E97dA71Ef83bD1E4
-2. BSC主网：
-3. TRON测试网：
-4. TRON主网：
-
 ### 网络信息
 
 #### BSC测试网
@@ -326,6 +313,7 @@ Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支�
 - 浏览器:https://shasta.tronscan.org
 - HTTP API: https://api.shasta.trongrid.io
 
+## 合约地址
 
 ### Token质押
 
