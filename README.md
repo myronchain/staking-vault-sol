@@ -310,40 +310,40 @@ class StakeEntry {
 ### 测试脚本
 
 1. 编译合约
-  ```shell
-  npm run compile
-  ```
+    ```shell
+    npm run compile
+    ```
 2. 测试覆盖率
-  ```shell
-  npm run codecov
-  ```
+    ```shell
+    npm run codecov
+    ```
 3. 测试主代币
-  ```shell
-  npm run test-maintoken
-  ```
+    ```shell
+    npm run test-maintoken
+    ```
 4. 测试Token
-  ```shell
-  npm run test-token
-  ```
+    ```shell
+    npm run test-token
+    ```
 
 
 ### 部署脚本
 
 1. 在BSC测试网部署
-  ```shell
-  # 部署主代币
-  npm run deploy-bsctest-maintoken
-  # 部署Token代币
-  npm run deploy-bsctest-token
-  ```
+    ```shell
+    # 部署主代币
+    npm run deploy-bsctest-maintoken
+    # 部署Token代币
+    npm run deploy-bsctest-token
+    ```
 
 2. 在BSC主网部署
-  ```shell
-  # 部署主代币
-  npm run deploy-bsc-maintoken
-  # 部署Token代币
-  npm run deploy-bsc-token
-  ```
+    ```shell
+    # 部署主代币
+    npm run deploy-bsc-maintoken
+    # 部署Token代币
+    npm run deploy-bsc-token
+    ```
 
 ## 网络信息
 
@@ -364,7 +364,6 @@ Shasta测试网各个参数与主网保持一致，目前Shasta测试网不支�
 ### Token质押
 
 1. BSC测试网：
-
      - 主代币质押：
        - StakeData: 0x43D98019dA9c36Cd5eEa7D3910F5f76B15b2Cc27
        - Withdraw: 0xD93Bf4fF0c3B6EF45E2Bfa1D0B146C9b3285CAdE
